@@ -12,7 +12,6 @@ public class AC10HeatingMqttService: IHostedService
     private readonly UsbTinCanBusAdapter                _usbTinCanBusAdapter;
     private readonly AC10MqttAdapter                    _ac10MqttAdapter;
     private readonly Dictionary<string, string>         _readings = new Dictionary<string, string>();
-    
     private readonly CancellationTokenSource            _cts = new CancellationTokenSource();
 
     public AC10HeatingMqttService(ILogger<AC10HeatingMqttService> logger, UsbTinCanBusAdapter usbTinCanBusAdapter, AC10MqttAdapter ac10MqttAdapter)

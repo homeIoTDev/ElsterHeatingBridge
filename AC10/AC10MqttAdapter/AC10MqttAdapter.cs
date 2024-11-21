@@ -77,7 +77,7 @@ public class AC10MqttAdapter: IDisposable
     }
     public void SendReading(string readingName, string value)
     {
-        _logger.LogInformation($"Enqueuing MQTT message to topic {_config.Topic}/{readingName} with payload {value}...");
+        _logger.LogInformation($"Enqueuing MQTT message to topic '{_config.Topic}/{readingName}' with payload '{value}'...");
         // Initialize the queue if not already done
         _sendingQueue.Enqueue((readingName, value));
         _newSendingQueueElementEvent.Set();
@@ -104,7 +104,7 @@ public class AC10MqttAdapter: IDisposable
     {
         try
         {
-            _logger.LogInformation($"Sending MQTT message to topic {_config.Topic}/{topic} with payload {payload}...");
+            _logger.LogInformation($"Sending MQTT message to topic '{_config.Topic}/{topic}' with payload '{payload}'...");
             var message = new MqttApplicationMessageBuilder()
                             .WithTopic(_config.Topic + "/" + topic)
                             .WithPayload(payload)
@@ -114,7 +114,7 @@ public class AC10MqttAdapter: IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Sending MQTT message to topic {_config.Topic}/{topic} with payload {payload} failed.");
+            _logger.LogError(ex, $"Sending MQTT message to topic '{_config.Topic}/{topic}' with payload '{payload}' failed.");
         }
     }
 

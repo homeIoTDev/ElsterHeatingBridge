@@ -1,0 +1,15 @@
+[Unit]
+Description=AC10 Heating on MQTT
+After=network.target
+# This file needs to exist in the /etc/systemd/system/ directory
+[Service]
+ExecStart=/usr/bin/dotnet /home/sme/source/AC10/AC10HeatingMqttService/bin/Debug/net8.0/AC10HeatingMqttService.dll
+Restart=always
+RestartSec=10
+SyslogIdentifier=AC10
+User=sme
+Environment=ASPNETCORE_ENVIRONMENT=Development
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target

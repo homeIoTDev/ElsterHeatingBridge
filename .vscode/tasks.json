@@ -1,0 +1,19 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Kill AC10 process",
+                "type": "shell",
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "${workspaceFolder}/.vscode/sigint_ac10_service.sh"
+                    // | xargs kill -s SIGINT"
+                ],
+                "problemMatcher": []
+            }
+        ]
+    }

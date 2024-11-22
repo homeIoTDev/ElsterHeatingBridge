@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
@@ -58,14 +59,40 @@ public class AC10HeatingMqttService: IHostedService
                 }
                 
                 _logger.LogInformation("Input: {key}", key);
-                if (key == ConsoleKey.S)
+                if (key == ConsoleKey.R)
                 { 
+                    StringBuilder logMessage = new StringBuilder();
                     foreach (var item in _readings)
                     {
-                        _logger.LogInformation("Reading: {Key} = {Value}", item.Key, item.Value);
+                        logMessage.AppendLine($"Reading: {item.Key} = {item.Value}");
                     }
-                    _logger.LogInformation("Current Time: {Time}", DateTime.Now);
+                    logMessage.AppendLine($"Current Time: {DateTime.Now}");
+                    _logger.LogInformation(logMessage.ToString());
                 } 
+                else if(key == ConsoleKey.C)
+                {
+                    _usbTinCanBusAdapter.SendLineWithoutResponse("C");
+                }
+                else if(key == ConsoleKey.O)
+                {
+                    _usbTinCanBusAdapter.SendLineWithoutResponse("O");
+                }
+                else if(key == ConsoleKey.N)
+                {
+                    _usbTinCanBusAdapter.SendLineWithoutResponse("");
+                }                
+                else if(key == ConsoleKey.F)
+                {
+                    _usbTinCanBusAdapter.SendLineWithoutResponse("F");
+                }
+                else if(key == ConsoleKey.V)
+                {
+                    _usbTinCanBusAdapter.SendLineWithoutResponse("V");
+                }                                
+                else if(key == ConsoleKey.D)
+                {
+                    _usbTinCanBusAdapter.Reset();
+                }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 
         }

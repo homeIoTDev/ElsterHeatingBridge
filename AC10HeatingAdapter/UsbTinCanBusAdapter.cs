@@ -14,7 +14,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
     private System.Timers.Timer                     _openPortTimer;
     private readonly AC10HeatingAdapter             _ac10HeatingAdapter;
     private Action<string,string>?                  _sendReadingCallback;
-    private bool                                    _ignoreCanBusErrors = false;
+    private bool                                    _isCanBusOpen = false;
     private CanAdapterResponse                      _lastCanAdapterResponse;
     private readonly ManualResetEventSlim           _sendLineResetEvent = new ManualResetEventSlim(false);
     private readonly object                         _sendLineLock       = new object();
@@ -122,7 +122,6 @@ public partial class UsbTinCanBusAdapter: IDisposable
             return;
         }
 
-
         if (_serialPort.IsOpen)
         {
             Task readLinesTask = Task.Run(() => { ReadLinesFromPort();});
@@ -135,25 +134,32 @@ public partial class UsbTinCanBusAdapter: IDisposable
             {    
                 _logger.LogError($"Could not start USBtinCanBusAdapter because _sendReadingCallback is null.");
             }
-            Start_CANBusInit();
-
-            
+            Start_CANBusInit(); 
         }
     }
+
+    /// <summary>
+    /// Resets the can bus adapter and closes the serial port. 
+    /// Due a the timer of 10 seconds the serial port will be opened again.
+    /// </summary>
+    public void Reset()
+    {
+        _logger.LogInformation("Resetting UsbTinCanBusAdapter.");
+        try { _serialPort?.Close(); } catch { }  // Close serial port in case of error
+        _isCanBusOpen = false;
+        _sendReadingCallback?.Invoke("CAN_Channel", "undefined");
+    }
+
 
     private void Start_CANBusInit()
     {
         _logger.LogInformation("Starting CANBusInit...");
         _sendReadingCallback?.Invoke("CAN_Channel", "config mode");
-        _ignoreCanBusErrors = true;
         SendLine(""); // clear CanAdapter-buffer. 2x
-        SendLine(""); // clear CanAdapter-buffer. 2x
+        SendLine(""); 
         SendLine("C"); // close CAN-Bus channel, if open.
         Task.Delay(200);
-        SendLine(""); // clear CanAdapter-buffer. 2x
-        _ignoreCanBusErrors = false;
-        SendLine("V"); // get HW Version
-        SendLine("v"); // get SW version
+        SendLine("V"); // get HW Version --> return Vxxxxyyyy\r
         SendLine("S1"); // setup standard CAN bit-rate 20kBit(S1)
 
         // I want to use the hardware filter of the can controller to accept only can telegrams adressed to me
@@ -163,12 +169,20 @@ public partial class UsbTinCanBusAdapter: IDisposable
         //SendLine("M00000000000\r"); // set acceptance filter
         //SendLine("m00000000000\r"); // set acceptance mask
 
-        SendLine("O"); // open CAN-Bus channel
-        SendLine("F"); // get Error state
-        _sendReadingCallback?.Invoke("CAN_Channel", "opened");    
+        if(SendLine("O")==CanAdapterResponse.OK) // open CAN-Bus channel
+        {
+            _isCanBusOpen = true;
+            _sendReadingCallback?.Invoke("CAN_Channel", "opened"); 
+            SendLine("F"); // get Error state
+        }
+        else
+        {
+            Reset();
+            return;
+        }
     }
 
-    private void SendLineWithoutResponse(string line)
+    public void SendLineWithoutResponse(string line)
     {
         _ = SendLine(line);
     }
@@ -180,7 +194,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
         {
             lock(_sendLineLock)
             {
-                _logger.LogDebug($"Tx serial port: '{lineForLogging}' length: {line.Length}");    
+                _logger.LogDebug($"Tx serial port: '{lineForLogging}' length: {line.Length+1}");    // add length + 1, because line ends with \r
                 _serialPort.WriteLine(line);
                 _sendLineResetEvent.Reset();
                 if(_sendLineResetEvent.Wait(300)==false)
@@ -204,8 +218,10 @@ public partial class UsbTinCanBusAdapter: IDisposable
         readLinesFromPortStartedSemaphore.Release();
         try
         {
+            //Main Loop of reading from serial port
             while (_serialPort.IsOpen)
             {
+                //-=Read Line or Error
                 var lineBuilder = new StringBuilder();
                 while (_serialPort.IsOpen)
                 {
@@ -216,23 +232,24 @@ public partial class UsbTinCanBusAdapter: IDisposable
                     }
                     else if( c == 7)    //beel 
                     {
-                        lineBuilder.Append(c);    // when <bell> found add to line, to be able to process errors in the main loop
+                        lineBuilder.Append((char)c);    // when <bell> found add to line, to be able to process errors in the main loop
                         SetCanAdapterResponse(CanAdapterResponse.Error);
                         break; //line complete
                     }
-                    lineBuilder.Append(c);
+                    lineBuilder.Append((char)c);
                 }
-                //Complete String
+                //Complete String of one line
                 string line = lineBuilder.ToString();
+                string lineForLogging = EscapeControlCharacters(line);
 
-
+                //-=Process Line of usbtin commands and responses
                 if(line.Length==0)
                 {
                     SetCanAdapterResponse(CanAdapterResponse.OK);
                 }
                 else if(line.Length==1)
                 {
-                    if( line[0] == (char)7)    //beel 
+                    if(line[0] == (char)7)    //beel 
                     {
                         SetCanAdapterResponse(CanAdapterResponse.Error);
                     }
@@ -241,7 +258,28 @@ public partial class UsbTinCanBusAdapter: IDisposable
                         SetCanAdapterResponse(CanAdapterResponse.OK);
                     }
                 }
-                _logger.LogDebug($"Rx serial port: '{line}'");
+                else if(line.Length==3)
+                {
+                    if ( line[0] == 'F')  // old version of usbtin use Vxx und vyy in two lines
+                    {
+                        SetCanAdapterResponse(CanAdapterResponse.OK);
+                        if(_isCanBusOpen)
+                        {
+                            ProcessCanBusErrorResponse(line.Substring(1,2));
+                        }
+                    }
+                }
+                else if(line.Length==5)
+                {
+                    if ( line[0] == 'V')  // old version of usbtin use Vxx und vyy in two lines
+                    {
+                        SetCanAdapterResponse(CanAdapterResponse.OK);
+                        _sendReadingCallback?.Invoke("HW_Version", line.Substring(1,2));
+                        _sendReadingCallback?.Invoke("SW_Version", line.Substring(3,2));
+                    }
+                }
+                
+                _logger.LogDebug($"Rx serial port: '{lineForLogging}' length: {line.Length}");
                 _ac10HeatingAdapter.ReceiveLine(line);
             }
             _logger.LogInformation($"Reading from serial port {_config.PortName} stopped, serial port is closed.");
@@ -249,10 +287,70 @@ public partial class UsbTinCanBusAdapter: IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Could not read from serial port {_config.PortName}");
-            try { _serialPort.Close(); } catch { }  // Close serial port in case of error
+            Reset();  // Close serial port in case of error
+            return;
         }
 
         _logger.LogInformation($"Reading from serial port {_config.PortName} stopped");
+    }
+
+    private void ProcessCanBusErrorResponse(string hexCodeString)
+    {
+        int errorCode;
+        List<string> errorTextArray = new List<string>();
+        string errorTextString;
+    
+        // Retrieve two-digit hex code and convert it to an integer
+        errorCode = Convert.ToInt32(hexCodeString, 16);
+    
+        if ((errorCode & 0x80) != 0) // USBtin Bit 7 - Bus error
+        {
+            // MCP2515: TXBO=TEC (Transmitt error counter) reaches 255. Error clears after a successful bus recovery sequence
+            // SJA1000: BEI = when the CAN controller detects an error on the CAN-bus and the BEIE bit is set
+            errorTextArray.Add("Bit 7 - Bus error (BEI)(TXBO>=255 on usbtin)");
+        }
+        else if ((errorCode & 0x40) != 0)
+        {
+            // MCP2515: not used
+            // SJA1000: Arbitration Lost (ALI)
+            errorTextArray.Add("Bit 6 - Arbitration Lost (ALI) - CAN232 only");
+        }
+        else if ((errorCode & 0x20) != 0)
+        {
+            // MCP2515: TXEP or RXEP (Transmit/Receive Error-Passive) = TEC or REC is equal to or greater than 128.
+            // SJA1000: EPI (Error Passive Interrupt)
+            errorTextArray.Add("Bit 5 - Error-Passive (EPI)");
+        }
+        else if ((errorCode & 0x08) != 0)
+        {
+            // MCP2515: RX1OVR or RX0OVR (Receive Buffer 0/1 Overflow)
+            // SJA1000: DOI (Data Overrun Interrupt)
+            errorTextArray.Add("Bit 3 - Data overrun (DOI)");
+        }
+        else if ((errorCode & 0x04) != 0)
+        {
+            // MCP2515: EWARN (Error Warning Flag)
+            // SJA1000: EI (Error Warning Interrupt)
+            errorTextArray.Add("Bit 2 - Error Warning (EI)");
+        }
+        else if ((errorCode & 0x02) != 0)
+        {
+            // MCP2515: not used
+            // SJA1000: CAN transmit FIFO queue full
+            errorTextArray.Add("Bit 1 - CAN transmit FIFO queue full");
+        }
+        else if ((errorCode & 0x01) != 0)
+        {
+            // MCP2515: not used
+            // SJA1000: CAN receive FIFO queue full
+            errorTextArray.Add("Bit 0 - CAN receive FIFO queue full");
+        }
+
+        // Write all error texts separated by | into the reading CAN_Fehler_Text
+        errorTextString = string.Join("|", errorTextArray);
+        _sendReadingCallback?.Invoke("CAN_Error_Text", errorTextString);
+        _sendReadingCallback?.Invoke("CAN_Error", hexCodeString);
+        _logger.LogDebug($"CAN Error: {errorTextString} ({errorCode})");
     }
 
     private void SetCanAdapterResponse(CanAdapterResponse response)
@@ -281,7 +379,6 @@ public partial class UsbTinCanBusAdapter: IDisposable
             }
         });
     }
-
     public void Dispose()
     {
         _logger.LogInformation("AC10HeatingAdapter disposed.");

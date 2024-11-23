@@ -13,21 +13,16 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 
 ### Testaufbau und Entwicklung
 Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
+
 <img src="doc/testsetup.png" width="600">
 
-## Lizenz
--------
+Dieses Projekt ist in Zusammenarbeit zwischen mir und einer KI entstanden und dient dazu, die Vorteile des Extreme Programming mit einer KI (insbesondere Codeium und Copilot) kennenzulernen :-)
 
-Dieses Programm ist freie Software; Sie können es unter den Bedingungen der GNU General Public License, wie von der Free Software Foundation veröffentlicht, weitergeben und/oder modifizieren; entweder gemäß Version 2 der Lizenz oder (nach Ihrer Wahl) jeder späteren Version.
-
-Die GNU General Public License ist unter <http://www.gnu.org/copyleft/gpl.html> erhältlich. Eine Kopie befindet sich in der Datei GPL.txt, wichtige Hinweise zur Lizenz vom Autor sind in der Datei LICENSE.txt enthalten, die mit diesen Skripten verteilt wird.
-
-Dieses Skript wird in der Hoffnung verteilt, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG; ohne die implizite Gewährleistung der MARKTGÄNGIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
 
 ## Quellen
 ----------
 
-Dieses Skript basiert auf der Arbeit von:
+Dieses Programm basiert auf der Arbeiten von:
 
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)

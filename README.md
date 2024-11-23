@@ -14,9 +14,9 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 ### Testaufbau und Entwicklung
 Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
 
-<img src="doc/testsetup.png" width="600">
+<img src="doc/testsetup.png" width="800">
 
-Dieses Projekt ist in Zusammenarbeit zwischen mir und einer KI entstanden und dient dazu, die Vorteile des Extreme Programming mit einer KI (insbesondere Codeium und Copilot) kennenzulernen :-)
+Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwickelt, um die Vorteile des Extreme Programming in Kombination mit KI-Tools wie Codeium und Copilot zu erproben. Die KI-Tools werden genutzt, um Git, GitHub, VS Code sowie Übersetzungen zwischen Programmiersprachen und die Korrektur von Englisch nach Deutsch (und umgekehrt) zu unterstützen. Eine ausgezeichnete Möglichkeit, moderne Technologien zu integrieren.
 
 
 ## Quellen

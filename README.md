@@ -6,7 +6,8 @@
 
 Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wärmepumpe über den CAN-Bus. Folgende Schnittstellen werden unterstützt:
 
-* USBtin
+* USBtin (Version HW10, SW00 - siehe Fischl.de) mit dem Protokoll von LAWICEL CANUSB
+* WPM 3 an einer WPL/TTL 10 AC mit FEK
 
 ## Lizenz
 -------
@@ -24,9 +25,7 @@ Dieses Skript basiert auf der Arbeit von:
 
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)
-* Radiator (Hartmut Schmidt)
-
-Die Elster-Codes sind gültig für eine WPL/TTL AC 10 Wärmepumpe mit WPM 3. Andere Pumpen können andere Codes haben.
+* Radiator
 
 ## Warnung
 ----------

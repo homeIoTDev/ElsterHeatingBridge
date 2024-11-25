@@ -239,8 +239,8 @@ public partial class UsbTinCanBusAdapter: IDisposable
                     lineBuilder.Append((char)c);
                 }
                 //Complete String of one line
-                string line = lineBuilder.ToString();
-                string lineForLogging = EscapeControlCharacters(line);
+                string line             = lineBuilder.ToString();
+                string lineForLogging   = EscapeControlCharacters(line);
 
                 //-=Process Line of usbtin commands and responses
                 if(line.Length==0)
@@ -278,7 +278,18 @@ public partial class UsbTinCanBusAdapter: IDisposable
                         _sendReadingCallback?.Invoke("SW_Version", line.Substring(3,2));
                     }
                 }
-                
+                else if(line.Length>0)
+                {
+                    if (line[0] == 't')
+                    {
+                        StandardCanFrame frame = StandardCanFrame.ParseFromUsbTin(line.Substring(1));
+                    }
+                    else if( line[0] == 'T')
+                    {
+                        ExtendedCanFrame frame = ExtendedCanFrame.ParseFromUsbTin(line.Substring(1));                       
+                    }
+                    
+                }
                 _logger.LogDebug($"Rx serial port: '{lineForLogging}' length: {line.Length}");
                 _ac10HeatingAdapter.ReceiveLine(line);
             }

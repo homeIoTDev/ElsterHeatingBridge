@@ -6,19 +6,19 @@ namespace AC10Service;
 //soll AC10HeatingAdapter
 internal class AC10HeatingAdapter
 {
-    private readonly ILogger<UsbTinCanBusAdapter> _logger;
+    private readonly ILogger<AC10HeatingAdapter> _logger;
 
     private Action<string>?         _sendLineCallback;
     private Action<string,string>?  _sendReadingCallback;
 
-    public AC10HeatingAdapter(ILogger<UsbTinCanBusAdapter> logger)
+    public AC10HeatingAdapter(ILogger<AC10HeatingAdapter> logger)
     {
         _logger = logger;
     }
 
     public void ProcessCanFrame(CanFrame frame)
     {
-        
+        _logger.LogDebug($"Received frame {frame.ToString()}"); 
     }
 
     private bool SendLine(String line)

@@ -23,9 +23,9 @@ public class CanFrame
         return data;
     }
 
-    public string DataToString()
+    internal string DataToString()
     {
-        string retString = "[{Data.Length:X1}] ";
+        string retString = $"[{Data.Length:X1}] ";
         for (int i = 0; i < Data.Length; i++)
             retString += $"{Data[i]:X2}";
         return retString;

@@ -21,16 +21,16 @@ public partial class UsbTinCanBusAdapter: IDisposable
 
     public enum CanAdapterResponse { OK, Error, Timeout };
 
-    public UsbTinCanBusAdapter(IOptions<UsbTinCanBusAdapterConfig> config, ILogger<UsbTinCanBusAdapter> logger)
+    public UsbTinCanBusAdapter(IOptions<UsbTinCanBusAdapterConfig> config, ILoggerFactory loggerFactory)
     {
         _config         = config.Value;
-        _logger         = logger;
-
+        _logger         = loggerFactory.CreateLogger<UsbTinCanBusAdapter>();
+       
         _logger.LogInformation("UsbTinCanBusAdapter initialized with configuration.");
         _openPortTimer  = new System.Timers.Timer(10000);
         _serialPort     = new SerialPort();
         ConfigureSerialPort();
-        _ac10HeatingAdapter = new AC10HeatingAdapter(_logger);
+        _ac10HeatingAdapter = new AC10HeatingAdapter(loggerFactory.CreateLogger<AC10HeatingAdapter>());
 
     }
 

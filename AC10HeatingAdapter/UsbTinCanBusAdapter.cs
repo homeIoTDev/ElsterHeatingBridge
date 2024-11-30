@@ -241,7 +241,8 @@ public partial class UsbTinCanBusAdapter: IDisposable
                 //Complete String of one line
                 string line             = lineBuilder.ToString();
                 string lineForLogging   = EscapeControlCharacters(line);
-
+                CanFrame?  canFrame     = null;                      
+                
                 //-=Process Line of usbtin commands and responses
                 if(line.Length==0)
                 {
@@ -282,17 +283,19 @@ public partial class UsbTinCanBusAdapter: IDisposable
                 {
                     if (line[0] == 't')
                     {
-                        StandardCanFrame frame = StandardCanFrame.ParseFromUsbTin(line.Substring(1));
+                        canFrame = StandardCanFrame.ParseFromUsbTin(line.Substring(1));
                     }
                     else if( line[0] == 'T')
                     {
-                        ExtendedCanFrame frame = ExtendedCanFrame.ParseFromUsbTin(line.Substring(1));                       
+                        canFrame = ExtendedCanFrame.ParseFromUsbTin(line.Substring(1));                       
                     }
-                    
                 }
                 _logger.LogDebug($"Rx serial port: '{lineForLogging}' length: {line.Length}");
-                _ac10HeatingAdapter.ReceiveLine(line);
-            }
+                if (canFrame != null)
+                {
+                    _ac10HeatingAdapter.ProcessCanFrame(canFrame);
+                }
+            } // while(_serialPort.IsOpen)
             _logger.LogInformation($"Reading from serial port {_config.PortName} stopped, serial port is closed.");
         }
         catch (Exception ex)

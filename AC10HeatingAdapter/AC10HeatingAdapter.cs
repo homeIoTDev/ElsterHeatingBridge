@@ -16,9 +16,9 @@ internal class AC10HeatingAdapter
         _logger = logger;
     }
 
-    public void ReceiveLine(string line)
+    public void ProcessCanFrame(CanFrame frame)
     {
-    
+        
     }
 
     private bool SendLine(String line)

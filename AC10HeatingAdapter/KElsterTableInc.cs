@@ -3689,6 +3689,7 @@ public partial class KElsterTable
         ( "INFOBLOCK_6"                                      , 0xfe07, 0)
     };
 
+    public static readonly short[] ElsterTabIndex = InitializeElsterTabIndex();
     public static (ushort Index, string Name)[] ErrorList =
     {
         (0x0002, "Schuetz klebt"),

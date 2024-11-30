@@ -45,8 +45,6 @@ public partial class KElsterTable
         "et_dev_id"
     };
 
-    public static readonly short[] ElsterTabIndex = InitializeElsterTabIndex();
-
     /// <summary>
     /// Initializes the ElsterTabIndex array. This array is
     /// used to quickly find the index of a specific entry 
@@ -56,13 +54,13 @@ public partial class KElsterTable
     private static short[] InitializeElsterTabIndex()
     {
         short[] elsterTabIndex = new short[0x10000]; 
-        for (int i = 0; i < ElsterTabIndex.Length; i++)
-            ElsterTabIndex[i] = -1;
+        for (int i = 0; i < elsterTabIndex.Length; i++)
+            elsterTabIndex[i] = -1;
 
         for (int i = 0; i < ElsterTable.Length; i++)
-            if (ElsterTabIndex[ElsterTable[i].Index] == -1)
-                ElsterTabIndex[ElsterTable[i].Index] = (short)i;
-        return ElsterTabIndex;
+            if (elsterTabIndex[ElsterTable[i].Index] == -1)
+                elsterTabIndex[ElsterTable[i].Index] = (short)i;
+        return elsterTabIndex;
     }
 
 }

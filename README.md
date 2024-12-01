@@ -28,6 +28,12 @@ Dieses Programm basiert auf der Arbeiten von:
 * Immi (THZ-Modul)
 * Radiator
 
+
+## Telegrammaufbau
+----------
+
+<img src="doc/telegram.png" width="800">
+
 ## Warnung
 ----------
 

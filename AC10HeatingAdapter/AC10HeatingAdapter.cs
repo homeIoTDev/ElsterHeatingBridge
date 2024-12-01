@@ -36,21 +36,15 @@ internal class AC10HeatingAdapter
         short elsterIndex = frame.GetElsterIdx();
         if (elsterIndex < 0)
             return false;
-        
-        var elsterEntry = KElsterTable.ElsterTable[elsterIndex]; 
-
-        _logger.LogDebug($"Elster CAN frame {elsterEntry.Name}: with type {elsterEntry.Type}");
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
-        /*
-        int Value = frame.GetValue();
-        if (ind < 0 || Value < 0)
+        if (ind < 0)
+        {
+            _logger.LogError($"Elster CAN frame with elster index {elsterIndex:X4} not found, with possible data: {frame.GetValue()} frame: {frame}");
             return false;
-
-        char val[64];
-
-        SetValueType(val, ElsterTable[ind].Type, (unsigned short) Value);
-        sprintf(str, "%s = %s", ElsterTable[ind].Name, val);
-*/
+        }
+        var elsterEntry = KElsterTable.ElsterTable[ind];
+        _logger.LogDebug($"{elsterEntry.Name} = {KElsterTable.GetValueString(elsterEntry.Type, (short)frame.GetValue())}");
+        
         return true;
 
 /*

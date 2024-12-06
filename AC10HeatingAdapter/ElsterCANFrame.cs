@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Metadata.Ecma335;
 
 namespace AC10Service;
 
@@ -59,6 +60,11 @@ public class ElsterCANFrame
 
     public uint Id { get; set; }
     public byte[] Data { get; set; } = new byte[8];
+
+    public ElsterCanId GetElsterCanId()
+    {
+        return (ElsterCanId)Id; 
+    }
 
     public static ElsterCANFrame? FromCanFrame(CanFrame canFrame)
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Reflection.Metadata.Ecma335;
+using static AC10Service.KElsterTable;
 
 namespace AC10Service;
 
@@ -52,6 +53,15 @@ namespace AC10Service;
 /// </summary>
 public class ElsterCANFrame
 {
+    private uint senderCanId;
+
+    public ElsterCANFrame(uint senderCanId, byte[] data)
+    {
+        this.senderCanId    = senderCanId;
+        Data                = data;
+        TelegramType        = GetTelegramType();
+    }
+
     //unsigned Counter;
     //int      TimeStampDay;
     //int      TimeStampMs;
@@ -61,6 +71,8 @@ public class ElsterCANFrame
     public uint Id { get; set; }
     public byte[] Data { get; set; } = new byte[8];
 
+    public ElsterTelegramType TelegramType { get; set; }
+
     public ElsterCanId GetElsterCanId()
     {
         return (ElsterCanId)Id; 
@@ -68,10 +80,19 @@ public class ElsterCANFrame
 
     public static ElsterCANFrame? FromCanFrame(CanFrame canFrame)
     {
-        ElsterCANFrame elsterCANFrame   = new ElsterCANFrame();
-        elsterCANFrame.Id               = canFrame.SenderCanId;
-        elsterCANFrame.Data             = canFrame.Data;
+        ElsterCANFrame elsterCANFrame   = new ElsterCANFrame(canFrame.SenderCanId, canFrame.Data);
         return elsterCANFrame;
+    }
+
+
+    internal ElsterTelegramType GetTelegramType()
+    {
+        if (Data.Length > 0)
+        {
+            int telegramTypInfo =(Data[0]&0x0F);
+            return (ElsterTelegramType)telegramTypInfo;
+        }
+        return ElsterTelegramType.Unknown;
     }
 
     internal short GetElsterIdx()

@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using static AC10Service.KElsterTable;
 
 namespace AC10Service;
 //soll AC10HeatingAdapter
@@ -32,50 +33,27 @@ internal class AC10HeatingAdapter
 
         if (frame.Data.Length != 7)  
             return false;
-        string fromDevice = frame.GetElsterCanId().ToString();
+
+        string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)frame.ReceiverCanId) ? frame.ReceiverElsterModule.ToString() : $"{frame.ReceiverCanId:X3}";
+        string fromDeviceModule = Enum.IsDefined(typeof(ElsterModule), (int)frame.SenderCanId) ? frame.SenderElsterModule.ToString() : $"{frame.SenderCanId:X3}";
         short elsterIndex = frame.GetElsterIdx();
         if (elsterIndex < 0)
             return false;
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
         if (ind < 0)
         {
-            _logger.LogError($"Elster {frame.TelegramType} CAN frame from {fromDevice} with elster index {elsterIndex:X4} not found, with possible data: {frame.GetValue()} frame: {frame}");
+            _logger.LogError($"Elster {frame.TelegramType} CAN frame from {fromDeviceModule} with elster index {elsterIndex:X4} not found, with possible data: {frame.GetValue()} frame: {frame}");
             return false;
         }
         var elsterEntry = KElsterTable.ElsterTable[ind];
-        _logger.LogDebug($"{frame.TelegramType} {fromDevice} {elsterEntry.Name} = {KElsterTable.GetValueString(elsterEntry.Type, (short)frame.GetValue())}");
+        string elsterValue = "= "+ KElsterTable.GetValueString(elsterEntry.Type, (short)frame.GetValue());
+        //If this is a request, then the value is always 0 and also unimportant, as it is being requested
+        if(frame.TelegramType == ElsterTelegramType.Read) {
+            elsterValue = "";
+        }
+        _logger.LogDebug($"{fromDeviceModule} ->{frame.TelegramType} {toDeviceModule} {elsterEntry.Name} {elsterValue}");
         
         return true;
-
-/*
-
-
-  int elster_idx = GetElsterIdx();
-      if (elster_idx >= 0)
-      {
-        const ElsterIndex * elst_ind = GetElsterIndex(elster_idx);
-        int Value = GetValue();
-        int d = Data[0] & 0xf;
-        if (Value >= 0 && d != 1) // 1 is request flag
-        {
-          if (elst_ind)
-            SetValueType(OutStr + strlen(OutStr), elst_ind->Type, (unsigned short) Value);
-          else
-            sprintf(OutStr + strlen(OutStr), "%d", (unsigned) Value);
-          strcat(OutStr, " ");
-        }
-        strcat(OutStr, elst_ind ? elst_ind->Name : "?");
-      }
-    } else {
-      for (int i = 0; i < 8; i++)
-        if (i < Len)
-          sprintf(OutStr + strlen(OutStr), "%c",
-                  ' ' <= Data[i] && Data[i] < 127 ? Data[i] : '.');
-    }
-  }
-  */
-
-
     }
 
     private bool SendLine(String line)

@@ -53,13 +53,13 @@ namespace AC10Service;
 /// </summary>
 public class ElsterCANFrame
 {
-    private uint senderCanId;
 
     public ElsterCANFrame(uint senderCanId, byte[] data)
     {
-        this.senderCanId    = senderCanId;
+        this.SenderCanId    = senderCanId;
         Data                = data;
         TelegramType        = GetTelegramType();
+        this.ReceiverCanId  = GetReceiverCanId();
     }
 
     //unsigned Counter;
@@ -68,15 +68,13 @@ public class ElsterCANFrame
     //int      Len;
     //unsigned Flags;
 
-    public uint Id { get; set; }
     public byte[] Data { get; set; } = new byte[8];
+    public uint SenderCanId { get; private set; }
+    public uint ReceiverCanId { get; private set; }
+    public ElsterModule SenderElsterModule {get { return (ElsterModule)SenderCanId; }}
+    public ElsterModule ReceiverElsterModule {get { return (ElsterModule)ReceiverCanId; }}
+    public ElsterTelegramType TelegramType { get; private set; }
 
-    public ElsterTelegramType TelegramType { get; set; }
-
-    public ElsterCanId GetElsterCanId()
-    {
-        return (ElsterCanId)Id; 
-    }
 
     public static ElsterCANFrame? FromCanFrame(CanFrame canFrame)
     {
@@ -84,6 +82,14 @@ public class ElsterCANFrame
         return elsterCANFrame;
     }
 
+    internal uint GetReceiverCanId()
+    {
+        if (Data.Length < 2)
+            return 0xFFFF;  // no receiver can id = error
+
+        uint retValue = (uint) ((Data[0] & 0xF0)<<3 + (Data[1] & 0x7F));
+        return retValue;
+    }
 
     internal ElsterTelegramType GetTelegramType()
     {

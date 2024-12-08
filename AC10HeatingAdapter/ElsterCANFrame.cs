@@ -1,5 +1,6 @@
 using System;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using static AC10Service.KElsterTable;
 
 namespace AC10Service;
@@ -53,26 +54,39 @@ namespace AC10Service;
 /// </summary>
 public class ElsterCANFrame
 {
-
-    public ElsterCANFrame(uint senderCanId, byte[] data)
-    {
-        this.SenderCanId    = senderCanId;
-        Data                = data;
-        TelegramType        = GetTelegramType();
-        this.ReceiverCanId  = GetReceiverCanId();
-    }
-
+    //Todo: Fehlermeldung über Elster sollten ausgewerten wreden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
     //unsigned Counter;
     //int      TimeStampDay;
     //int      TimeStampMs;
     //int      Len;
     //unsigned Flags;
 
-    public byte[] Data { get; set; } = new byte[8];
-    public uint SenderCanId { get; private set; }
-    public uint ReceiverCanId { get; private set; }
+    public ElsterCANFrame(uint senderCanId, byte[] data)
+    {
+        this.SenderCanId    = senderCanId;
+        Data                = data;
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        TelegramType        = GetTelegramType();
+        this.ReceiverCanId  = GetReceiverCanId();
+    }
+
+    public byte[]   Data            { get; private set; } 
+    public uint     SenderCanId     { get; private set; }
+    public uint     ReceiverCanId   { get; private set; }
+
     public ElsterModule SenderElsterModule {get { return (ElsterModule)SenderCanId; }}
-    public ElsterModule ReceiverElsterModule {get { return (ElsterModule)ReceiverCanId; }}
+
+    public ElsterModule ReceiverElsterModule {
+        get { return (ElsterModule)ReceiverCanId; }
+        set { 
+                SetReceiverCanId((uint)value);
+                Initialize(); // Update all properties 
+            }
+    }
     public ElsterTelegramType TelegramType { get; private set; }
 
 
@@ -81,16 +95,63 @@ public class ElsterCANFrame
         ElsterCANFrame elsterCANFrame   = new ElsterCANFrame(canFrame.SenderCanId, canFrame.Data);
         return elsterCANFrame;
     }
-
+    /// <summary>
+    /// Gets the Receiver CAN ID from the Data array.
+    /// </summary>
+    /// <returns>The Receiver CAN ID, or 0xFFFF if Data array is too short</returns>
     internal uint GetReceiverCanId()
     {
         if (Data.Length < 2)
             return 0xFFFF;  // no receiver can id = error
+        uint retValue = (uint)(((Data[0] & 0xF0) << 3) + (Data[1] & 0x7f));
 
-        uint retValue = (uint) ((Data[0] & 0xF0)<<3 + (Data[1] & 0x7F));
         return retValue;
     }
 
+    /// <summary>
+    /// Sets the Receiver CAN ID in the Data array. The array must be at least 2 bytes long.
+    /// </summary>
+    /// <param name="receiverCanId">The Receiver CAN ID to set.</param>
+    /// <exception cref="Exception">Thrown if Data.Length is less than 2.</exception>
+    private void SetReceiverCanId(uint receiverCanId)
+    {
+        if (Data.Length < 2) throw new Exception("Data.Length < 2");
+        byte data0 = (byte)((receiverCanId >> 3) & 0xf0);
+        byte data1 = (byte)(receiverCanId & 0x7f);
+        Data[0] = (byte)(((int)Data[0] & 0x0f) | (int)data0);
+        Data[1] = (byte)(((int)Data[1] & 0x80) | (int)data1);
+    }
+
+    /// <summary>
+    /// Gibt zurück, ob diese Elster CAN-Frame ein Broadcast-Telegramm ist für eine
+    /// Modul-Gruppe. Eine Modul-Gruppe besteht z.B aus allen Wärmepumpen-Managern, so z.B. aus WPM1 und WPM2.
+    /// In diesem Fall ist das zweite Datenbyte immer 0x79. Das Setzten für eine Broadcast-Telegramm
+    /// für eine Modul-Gruppe kann direkt über <see cref="ReceiverElsterModule"/> oder über 
+    /// <see cref="SetReceiverModuleBroadcast"/> erfolgen.
+    /// </summary>
+    /// <returns>True, wenn es ein Broadcast für eine Module-Gruppe ist</returns>
+    public bool IsReceiverModuleBroadcast()
+    {
+        return Data[1] == 0x79; 
+    }
+
+    /// <summary>
+    /// Setzt das zweite Datenbyte auf 0x79, so dass die Elster CAN-Frame ein Broadcast-Telegramm ist
+    /// für eine Modul-Gruppe. Eine Modul-Gruppe besteht z.B aus allen Wärmepumpen-Managern,
+    /// so z.B. aus WPM1 und WPM2. Die Module-Gruppe muss vorher mit <see cref="ReceiverElsterModule"/>
+    /// gesetzt worden sein. Man kann auch direkt über <see cref="ReceiverElsterModule"/> eine Broadcast
+    /// für eine Module-Gruppe setzten. Mit <see cref="IsReceiverModuleBroadcast"/> kann abgefragt
+    /// werden, ob es sich um einen Broadcast fuer eine Module-Gruppe handelt.
+    /// </summary>
+    public void SetReceiverModuleBroadcast()
+    { 
+        if (Data.Length < 2) throw new Exception("Data.Length < 2");
+        Data[1] = 0x79;
+        Initialize(); // Update all properties 
+    }
+    
+  
+//Todo: Alle Property sollen get und set Methoden haben, wie SetReceiverCanId
     internal ElsterTelegramType GetTelegramType()
     {
         if (Data.Length > 0)
@@ -138,7 +199,6 @@ public class ElsterCANFrame
 
     internal string GetValueString()
     {
-
         short elsterIndex = GetElsterIdx();
         if (elsterIndex < 0)
             return "";
@@ -151,5 +211,33 @@ public class ElsterCANFrame
         if (elsterValue ==-1)
             return "";
         return KElsterTable.GetValueString(elsterType, (short)elsterValue);    
+    }
+
+    override public string ToString()
+    {
+        StringBuilder str = new StringBuilder();
+
+        if (Data.Length != 7)  
+            return "Incorrect Elster CAN data length "+Data.Length+ ", expected 7";
+
+        string broadcastString  = IsReceiverModuleBroadcast() ? "(broadcast)" : "";
+        string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)ReceiverCanId) ? ReceiverElsterModule.ToString() : $"{ReceiverCanId:X3}{broadcastString}";
+        string fromDeviceModule = Enum.IsDefined(typeof(ElsterModule), (int)SenderCanId) ? SenderElsterModule.ToString() : $"{SenderCanId:X3}";
+             
+        short elsterIndex = GetElsterIdx();
+        if (elsterIndex < 0)
+            return "Incorrect Elster CAN frame, because Elster index not found";
+        int ind = KElsterTable.ElsterTabIndex[elsterIndex];
+        if (ind < 0)
+        {
+            return $"Elster CAN frame from {fromDeviceModule} ->{TelegramType} on {toDeviceModule} with elster index {elsterIndex:X4} not found, with possible data: {GetValue()} frame";
+        }
+        var elsterEntry     = KElsterTable.ElsterTable[ind];
+        string elsterValue  = "= "+ KElsterTable.GetValueString(elsterEntry.Type, (short)GetValue());
+        //If this is a request, then the value is always 0 and also unimportant, as it is being requested
+        if(TelegramType == ElsterTelegramType.Read) {
+            elsterValue = "";
+        }
+        return $"{fromDeviceModule} ->{TelegramType} on {toDeviceModule} {elsterEntry.Name} {elsterValue}";
     }
 }

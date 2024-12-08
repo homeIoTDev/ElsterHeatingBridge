@@ -11,25 +11,45 @@ namespace AC10Service;
 public enum ElsterModule
 {
     /// <summary>
-    /// CAN-ID 0x0300 - Direct
+    /// CAN-ID 0x000 - Direct (Was ist direct? Für alle Module?)
     /// </summary>
-    Direct = 0x0000,
+    Direct = 0x000,
+    /// <summary>
+    /// CAN-ID 0x0079 - Direct broadcast (dont know what this is or if it is used)
+    /// </summary>
+    Direct_Broadcast = 0x079,
     /// <summary>
     /// CAN-ID 0x0100 - Unknown module in Tecalor WPL 10 AC mit FEK, Puffer, WPM3
     /// </summary>
-    Unknown_100h = 0x0100,
+    Unknown_100h = 0x100,
+    /// <summary>
+    /// CAN-ID 0x0179 - Unknown module broadcast in Tecalor WPL 10 AC mit FEK, Puffer, WPM3
+    /// </summary>
+    Unknown_100h_Broadcast = 0x0179,
     /// <summary>
     /// CAN-ID 0x0180 - Boiler module
     /// </summary>
     Boiler = 0x0180,
     /// <summary>
+    /// CAN-ID 0x01F9 - Boiler broadcast to all boiler modules
+    /// </summary>
+    Boiler_Broadcast = 0x1F9,  
+    /// <summary>
     /// CAN-ID 0x0280 - Atez module
     /// </summary>
     AtezModule = 0x280,
     /// <summary>
+    /// CAN-ID 0x2F9 - Atez module broadcast
+    /// </summary>
+    AtezModule_Broadcast =0x2F9,
+    /// <summary>
     /// CAN-ID 0x0301 - Remote control module (FEK)
     /// </summary>
     RemoteControl = 0x301,
+    /// <summary>
+    /// CAN-ID 0x0379 - Remote control module broadcast
+    /// </summary>
+    RemoteControl_Broadcast = 0x379,
     /// <summary>
     /// CAN-ID 0x0302 - Remote control module 2
     /// </summary>
@@ -43,21 +63,41 @@ public enum ElsterModule
     /// </summary>
     RoomThermostat = 0x400,
     /// <summary>
+    /// CAN-ID 0x0479 - Room thermostat broadcast
+    /// </summary>
+    RoomThermostat_Broadcast = 0x479,
+    /// <summary>
     /// CAN-ID 0x0480 - Manager
     /// </summary>
     Manager = 0x480,
+    /// <summary>
+    /// CAN-ID 0x04F9 - Manager broadcast
+    /// </summary>
+    Manager_Broadcast=0x4F9,
     /// <summary>
     /// CAN-ID 0x0500 - Electric Heater Control Module
     /// </summary>
     HeatingModule = 0x500,
     /// <summary>
+    /// CAN-ID 0x0579 - Electric Heater Control Module broadcast
+    /// </summary>
+    HeatingModule_Broadcast = 0x579,
+    /// <summary>
     /// CAN-ID 0x0580 - Bus coupler
     /// </summary>
     BusCoupler = 0x580,
     /// <summary>
+    /// CAN-ID 0x05F9 - Bus coupler broadcast
+    /// </summary>
+    BusCoupler_Broadcast=0x5F9,
+    /// <summary>
     /// CAN-ID 0x0601 - Mixer module 1
     /// </summary>
     Mixer = 0x601,
+    /// <summary>
+    /// CAN-ID 0x0679 - Mixer module broadcast
+    /// </summary>
+    Mixer_Broadcast=0x679,
     /// <summary>
     /// CAN-ID 0x0602 - Mixer module 2
     /// </summary>
@@ -71,11 +111,23 @@ public enum ElsterModule
     /// </summary>
     ComfortSoft = 0x680,
     /// <summary>
+    /// CAN-ID 0x06F9 - PC (ComfortSoft). Don't use as sender id with WPM3.
+    /// </summary>
+    ComfortSoft_Broadcast=0x6F9,
+    /// <summary>
     /// CAN-ID 0x0700 - External device
     /// </summary>
     ExternalDevice = 0x700,
     /// <summary>
+    /// CAN-ID 0x0779 - External device broadcast
+    /// </summary>
+    ExternalDevice_Broadcast=0x779,
+    /// <summary>
     /// CAN-ID 0x0780 - DCF module
     /// </summary>
-    Dcf = 0x780
+    Dcf = 0x780,
+    /// <summary>
+    /// CAN-ID 0x07F9 - DCF module broadcast
+    /// </summary>
+    Dcf_Broadcast=0x7F9
 }

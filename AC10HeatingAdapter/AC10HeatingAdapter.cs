@@ -15,46 +15,42 @@ internal class AC10HeatingAdapter
 
     public AC10HeatingAdapter(ILogger<AC10HeatingAdapter> logger)
     {
-        _logger = logger;
+      _logger = logger;
     }
-
+//Todo: Diese Methode sollte am ElsterCANFrame.IsValid or haveErrors prüfen und ggf. loggen über tostring
+//Todo: Diese Methode sollte Schnell ausgefuehrt werden und
+//Todo: sollte keine Excpeption werfen!
     public void ProcessCanFrame(CanFrame frame)
     {
         _logger.LogDebug($"Received frame {frame.ToString()}"); 
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
         if(elsterFrame != null) {
-             LogElsterCanFrame(elsterFrame);
+          _logger.LogDebug($"{elsterFrame.ToString()}");
         }
     }
 
-    bool LogElsterCanFrame(ElsterCANFrame frame)
-    {
-        StringBuilder str = new StringBuilder();
+/*
+    bool KCanElster::GetValue(unsigned short receiver_id, unsigned short elster_idx, unsigned short & Value)
+{
+  InitSendFrame(receiver_id, elster_idx);
 
-        if (frame.Data.Length != 7)  
-            return false;
+  if (Send() && RecvFrame.Len == 7)
+  {
+    int val = -1;
+    
+    val = RecvFrame.GetValue();
+    if (val < 0)
+      return false;
+    
+    Value = (unsigned short) val;
+    
+    return true;
+  }
 
-        string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)frame.ReceiverCanId) ? frame.ReceiverElsterModule.ToString() : $"{frame.ReceiverCanId:X3}";
-        string fromDeviceModule = Enum.IsDefined(typeof(ElsterModule), (int)frame.SenderCanId) ? frame.SenderElsterModule.ToString() : $"{frame.SenderCanId:X3}";
-        short elsterIndex = frame.GetElsterIdx();
-        if (elsterIndex < 0)
-            return false;
-        int ind = KElsterTable.ElsterTabIndex[elsterIndex];
-        if (ind < 0)
-        {
-            _logger.LogError($"Elster {frame.TelegramType} CAN frame from {fromDeviceModule} with elster index {elsterIndex:X4} not found, with possible data: {frame.GetValue()} frame: {frame}");
-            return false;
-        }
-        var elsterEntry = KElsterTable.ElsterTable[ind];
-        string elsterValue = "= "+ KElsterTable.GetValueString(elsterEntry.Type, (short)frame.GetValue());
-        //If this is a request, then the value is always 0 and also unimportant, as it is being requested
-        if(frame.TelegramType == ElsterTelegramType.Read) {
-            elsterValue = "";
-        }
-        _logger.LogDebug($"{fromDeviceModule} ->{frame.TelegramType} {toDeviceModule} {elsterEntry.Name} {elsterValue}");
-        
-        return true;
-    }
+  return false;
+}
+*/
+   
 
     private bool SendLine(String line)
     {

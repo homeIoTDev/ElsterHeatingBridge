@@ -70,9 +70,8 @@ public class ElsterCANFrame
 
     private void Initialize()
     {
-        TelegramType        = GetTelegramType();
         this.ReceiverCanId  = GetReceiverCanId();
-        ValidateAndCreateToStringString();
+        ValidateAndGenerateToString();
     }
 
     public byte[]   Data            { get; private set; } 
@@ -91,7 +90,13 @@ public class ElsterCANFrame
                 Initialize(); // Update all properties 
             }
     }
-    public ElsterTelegramType TelegramType { get; private set; }
+    public ElsterTelegramType TelegramType { 
+        get { return GetTelegramType(); }
+        set { 
+                SetTelegramType(value);
+                Initialize(); // Update all properties 
+            } 
+     }
 
 
     public static ElsterCANFrame? FromCanFrame(CanFrame canFrame)
@@ -127,6 +132,33 @@ public class ElsterCANFrame
     }
 
     /// <summary>
+    /// Gets the Telegram Type from the Data array.
+    /// </summary>
+    /// <returns>Elster Telegram Type or ElsterTelegramType.Unknown, 
+    /// if Data array is too short</returns>
+    private ElsterTelegramType GetTelegramType()
+    {
+        if (Data.Length > 0)
+        {
+            int telegramTypInfo =(Data[0]&0x0F);
+            return (ElsterTelegramType)telegramTypInfo;
+        }
+        return ElsterTelegramType.Unknown;
+    }
+
+    /// <summary>
+    /// Sets the Telegram Type in the Data array. The array must be at least 1 byte long.
+    /// </summary>
+    /// <param name="telegramType">The Telegram Type to set.</param>
+    /// <exception cref="Exception">Thrown if Data.Length is less than 1.</exception>
+    private void SetTelegramType(ElsterTelegramType telegramType)
+    {
+        if (Data.Length < 1) throw new Exception("Data.Length < 1");
+        if (telegramType == ElsterTelegramType.Unknown) throw new Exception("telegramType == ElsterTelegramType.Unknown");
+        Data[0] = (byte)(((int)Data[0] & 0xF0) | (int)telegramType);
+    }
+
+    /// <summary>
     /// Gibt zurück, ob diese Elster CAN-Frame ein Broadcast-Telegramm ist für eine
     /// Modul-Gruppe. Eine Modul-Gruppe besteht z.B aus allen Wärmepumpen-Managern, so z.B. aus WPM1 und WPM2.
     /// In diesem Fall ist das zweite Datenbyte immer 0x79. Das Setzten für eine Broadcast-Telegramm
@@ -156,17 +188,8 @@ public class ElsterCANFrame
     
   
 //Todo: Alle Property sollen get und set Methoden haben, wie SetReceiverCanId
-    internal ElsterTelegramType GetTelegramType()
-    {
-        if (Data.Length > 0)
-        {
-            int telegramTypInfo =(Data[0]&0x0F);
-            return (ElsterTelegramType)telegramTypInfo;
-        }
-        return ElsterTelegramType.Unknown;
-    }
 
-    internal short GetElsterIdx()
+    private short GetElsterIdx()
     {
         if (Data.Length > 7 || Data.Length < 3)
             return -1;
@@ -217,7 +240,11 @@ public class ElsterCANFrame
         return KElsterTable.GetValueString(elsterType, (short)elsterValue);    
     }
 
-    private void ValidateAndCreateToStringString()
+    /// <summary>
+    /// Validiert die Elster CAN-Frame und erzeugt einen String für die Ausgabe
+    /// über <see cref="ToString"/>.
+    /// </summary>
+    private void ValidateAndGenerateToString()
     {
         toStringString                  = "";
         IsKnownElsterIndex              = false;
@@ -244,7 +271,7 @@ public class ElsterCANFrame
         }
 
         //Letzte Prüfung, ob es überhaupt gültige CAN-Ids für Sender oder Empfänger gesetzt sind
-        IsValidTelegram = (SenderCanId> 0x7ff) || (ReceiverCanId > 0x7ff)? false : true;
+        IsValidTelegram = (SenderCanId> 0x7ff) || (ReceiverCanId > 0x7ff) || this.TelegramType == ElsterTelegramType.Unknown? false : true;
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
         if (ind < 0)
         {

@@ -17,7 +17,6 @@ internal class AC10HeatingAdapter
     {
       _logger = logger;
     }
-//Todo: Diese Methode sollte am ElsterCANFrame.IsValid or haveErrors prüfen und ggf. loggen über tostring
 //Todo: Diese Methode sollte Schnell ausgefuehrt werden und
 //Todo: sollte keine Excpeption werfen!
     public void ProcessCanFrame(CanFrame frame)

@@ -72,11 +72,15 @@ public class ElsterCANFrame
     {
         TelegramType        = GetTelegramType();
         this.ReceiverCanId  = GetReceiverCanId();
+        ValidateAndCreateToStringString();
     }
 
     public byte[]   Data            { get; private set; } 
     public uint     SenderCanId     { get; private set; }
     public uint     ReceiverCanId   { get; private set; }
+    public bool     IsValidTelegram   { get; private set; }
+    public bool     IsKnownElsterIndex { get; private set; }
+    private string toStringString ="";
 
     public ElsterModule SenderElsterModule {get { return (ElsterModule)SenderCanId; }}
 
@@ -213,31 +217,66 @@ public class ElsterCANFrame
         return KElsterTable.GetValueString(elsterType, (short)elsterValue);    
     }
 
-    override public string ToString()
+    private void ValidateAndCreateToStringString()
     {
-        StringBuilder str = new StringBuilder();
+        toStringString                  = "";
+        IsKnownElsterIndex              = false;
+        StringBuilder str               = new StringBuilder();
+        string fromDeviceModule         = Enum.IsDefined(typeof(ElsterModule), (int)SenderCanId) ? SenderElsterModule.ToString() : $"{SenderCanId:X3}";
+        string fromDeviceCanIdInvalid   = SenderCanId > 0x7ff ? "(invalid)" : "";
+        string toDeviceCanIdInvalid     = ReceiverCanId > 0x7ff ? "(invalid)" : "";
 
-        if (Data.Length != 7)  
-            return "Incorrect Elster CAN data length "+Data.Length+ ", expected 7";
+        if (Data.Length != 7) { 
+            toStringString = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} with incorrect data length, expected 7. [{Data.Length}] {DataToString()}";
+            IsValidTelegram = false;
+            return;
+        }
 
         string broadcastString  = IsReceiverModuleBroadcast() ? "(broadcast)" : "";
         string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)ReceiverCanId) ? ReceiverElsterModule.ToString() : $"{ReceiverCanId:X3}{broadcastString}";
-        string fromDeviceModule = Enum.IsDefined(typeof(ElsterModule), (int)SenderCanId) ? SenderElsterModule.ToString() : $"{SenderCanId:X3}";
              
         short elsterIndex = GetElsterIdx();
         if (elsterIndex < 0)
-            return "Incorrect Elster CAN frame, because Elster index not found";
+        {
+            toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} without elster index.  [{Data.Length}] {DataToString()}";
+            IsValidTelegram = false;
+            return;
+        }
+
+        //Letzte Prüfung, ob es überhaupt gültige CAN-Ids für Sender oder Empfänger gesetzt sind
+        IsValidTelegram = (SenderCanId> 0x7ff) || (ReceiverCanId > 0x7ff)? false : true;
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
         if (ind < 0)
         {
-            return $"Elster CAN frame from {fromDeviceModule} ->{TelegramType} on {toDeviceModule} with elster index {elsterIndex:X4} not found, with possible data: {GetValue()} frame";
+            toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {elsterIndex:X4}, with possible data: '{GetValue()}' [{Data.Length}] {DataToString()}";
+            return;
         }
+
+        IsKnownElsterIndex  = true;
         var elsterEntry     = KElsterTable.ElsterTable[ind];
         string elsterValue  = "= "+ KElsterTable.GetValueString(elsterEntry.Type, (short)GetValue());
         //If this is a request, then the value is always 0 and also unimportant, as it is being requested
         if(TelegramType == ElsterTelegramType.Read) {
             elsterValue = "";
         }
-        return $"{fromDeviceModule} ->{TelegramType} on {toDeviceModule} {elsterEntry.Name} {elsterValue}";
+        toStringString = $"{fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} {elsterEntry.Name} {elsterValue}";
+    }
+
+    /// <summary>
+    /// Returns a string with the following 
+    /// format: {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} {elsterEntry.Name} {elsterValue}
+    /// </summary>
+    /// <returns>string that represents the current object</returns>
+    public override string ToString()
+    {
+        return toStringString;
+    }
+
+    private string DataToString()
+    {
+        string retString = $"[{Data.Length:X1}] ";
+        for (int i = 0; i < Data.Length; i++)
+            retString += $"{Data[i]:X2}";
+        return retString;
     }
 }

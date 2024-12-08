@@ -25,7 +25,14 @@ internal class AC10HeatingAdapter
         _logger.LogDebug($"Received frame {frame.ToString()}"); 
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
         if(elsterFrame != null) {
-          _logger.LogDebug($"{elsterFrame.ToString()}");
+          if(elsterFrame.IsValidTelegram && elsterFrame.IsKnownElsterIndex)
+          {
+            _logger.LogDebug($"{elsterFrame.ToString()}");
+          }
+          else
+          {
+            _logger.LogWarning($"{elsterFrame.ToString()}");
+          }
         }
     }
 

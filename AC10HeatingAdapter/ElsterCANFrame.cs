@@ -61,24 +61,45 @@ public class ElsterCANFrame
     //int      Len;
     //unsigned Flags;
 
-    public ElsterCANFrame(uint senderCanId, byte[] data)
+    private ElsterCANFrame(uint senderCanId, byte[] data)
     {
         this.SenderCanId    = senderCanId;
         Data                = data;
         Initialize();
     }
 
+    public ElsterCANFrame(uint senderCanId, ElsterModule receiverElsterModule, ElsterTelegramType telegramType, ushort elsterIndex, ushort value, bool enhancedTelegram = false)
+    {
+        if(!enhancedTelegram)
+        {
+            Data = new byte[4];
+        }
+        else
+        {
+            Data = new byte[7];
+        }
+        this.SenderCanId    = senderCanId;
+        SetReceiverCanId((uint)receiverElsterModule);
+        SetTelegramType(telegramType);
+        SetElsterIndex(elsterIndex);
+        SetValue(value);
+        Initialize();
+    }
     private void Initialize()
     {
         this.ReceiverCanId  = GetReceiverCanId();
         ValidateAndGenerateToString();
     }
 
-    public byte[]   Data            { get; private set; } 
-    public uint     SenderCanId     { get; private set; }
-    public uint     ReceiverCanId   { get; private set; }
-    public bool     IsValidTelegram   { get; private set; }
-    public bool     IsKnownElsterIndex { get; private set; }
+    public byte[]   Data                { get; private set; } 
+    public uint     SenderCanId         { get; private set; }
+    public uint     ReceiverCanId       { get; private set; }
+    public bool     IsValidTelegram     { get; private set; }
+    public bool     IsKnownElsterIndex  { get; private set; }
+    /// <summary>
+    /// The Elster Index. If < 0, the Elster Index is invalid.
+    /// </summary>
+    public short   ElsterIndex         { get; private set; }
     private string toStringString ="";
 
     public ElsterModule SenderElsterModule {get { return (ElsterModule)SenderCanId; }}
@@ -187,9 +208,21 @@ public class ElsterCANFrame
     }
     
   
-//Todo: Alle Property sollen get und set Methoden haben, wie SetReceiverCanId
 
-    private short GetElsterIdx()
+
+    /// <summary>
+    /// Retrieves the Elster Index from the Data array.
+    /// </summary>
+    /// <returns>
+    /// The Elster Index as a short. Returns -1 if the Data array length 
+    /// is invalid or if additional data is expected but not present.
+    /// </returns>
+    /// <remarks>
+    /// The function checks if the telegram is enhanced (indicated by 0xfa at Data[2]).
+    /// If it is enhanced, it expects the Elster Index to be a two-byte value (Data[3] and Data[4]).
+    /// Otherwise, it uses the value at Data[2] as the Elster Index.
+    /// </remarks>
+    private short GetElsterIndex()
     {
         if (Data.Length > 7 || Data.Length < 3)
             return -1;
@@ -208,7 +241,35 @@ public class ElsterCANFrame
         }
     }
 
-    internal int GetValue()
+    private void SetElsterIndex(ushort idx)
+    {
+        if( idx == 0xfa ) 
+        {
+           throw new Exception("Can't set explicit an anhanced telegram");  // we can't set an anhanced telegram
+        } 
+        //If Data is initialised with 5 bytes, we have an short telegram,
+        //so we can set an elster index below 256. 
+        if(Data.Length == 5)
+        {
+            if (idx < 0x100)
+            {
+                Data[2] = (byte) idx;
+            } 
+        }
+        //If Data is initialised with 7 bytes, we have an enhanced telegram,
+        //so we can set any elster index, even below 256.
+        if(Data.Length == 7)
+        {
+            Data[2] = 0xfa;
+            Data[3] = (byte) (idx >> 8);
+            Data[4] = (byte) idx;
+        }
+        else
+            throw new Exception("Wrong length of data array, expected 5 or 7");  // false length of data array
+    }
+
+//Todo: Alle Property sollen get und set Methoden haben, wie SetReceiverCanId
+    private int GetValue()
     {
         if (Data.Length < 5 || Data.Length > 7)
             return -1;
@@ -224,9 +285,25 @@ public class ElsterCANFrame
         return 256*Data[3] + Data[4];
     }
 
+    bool SetValue(ushort value)
+    {
+        if (Data.Length != 5 && Data.Length != 7)
+            return false;
+
+        if (Data[2] == 0xfa) //enhanced telegram with enhanced Elster-Index
+        {
+            Data[5] = (byte)(value >> 8);
+            Data[6] = (byte)(value & 0xff);
+        } else {
+            Data[3] = (byte)(value >> 8);
+            Data[4] = (byte)(value & 0xff);
+        }
+        return true;
+    }
+
     internal string GetValueString()
     {
-        short elsterIndex = GetElsterIdx();
+        short elsterIndex = GetElsterIndex();
         if (elsterIndex < 0)
             return "";
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
@@ -262,8 +339,8 @@ public class ElsterCANFrame
         string broadcastString  = IsReceiverModuleBroadcast() ? "(broadcast)" : "";
         string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)ReceiverCanId) ? ReceiverElsterModule.ToString() : $"{ReceiverCanId:X3}{broadcastString}";
              
-        short elsterIndex = GetElsterIdx();
-        if (elsterIndex < 0)
+        ElsterIndex = GetElsterIndex();
+        if (ElsterIndex < 0)
         {
             toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} without elster index.  [{Data.Length}] {DataToString()}";
             IsValidTelegram = false;
@@ -272,10 +349,10 @@ public class ElsterCANFrame
 
         //Letzte Prüfung, ob es überhaupt gültige CAN-Ids für Sender oder Empfänger gesetzt sind
         IsValidTelegram = (SenderCanId> 0x7ff) || (ReceiverCanId > 0x7ff) || this.TelegramType == ElsterTelegramType.Unknown? false : true;
-        int ind = KElsterTable.ElsterTabIndex[elsterIndex];
+        int ind = KElsterTable.ElsterTabIndex[ElsterIndex];
         if (ind < 0)
         {
-            toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {elsterIndex:X4}, with possible data: '{GetValue()}' [{Data.Length}] {DataToString()}";
+            toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {ElsterIndex:X4}, with possible data: '{GetValue()}' [{Data.Length}] {DataToString()}";
             return;
         }
 

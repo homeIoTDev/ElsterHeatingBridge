@@ -58,12 +58,12 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 
 angeschaut werden.
 
-## Untersuchungen 22.12.24 - Setzten der Heizkurve auf 0.2 von der FEK
+## Untersuchungen 22.12.24 - Setzen der Heizkurve auf 0.2 von der FEK
 Eine Anpassung an der FEK (RemoteControl) für HK1 zeigt keinerlei Kommunikation auf dem Bus. Dies legt die Vermutung nahe, dass die FEK die vollständige Steuerung des HK1 übernimmt. Konkret wurde die Heizkurve auf 0.2 festgelegt. Da entweder der WPM die Steuerung des HKs übernimmt und nach der Installation der FEK alle Einstellungen bezüglich der Heizkurve aus diesem verschwunden sind, verwaltet und steuert nun wahrscheinlich die FEK alle Parameter und sendet nur die Ergebnisse an die anderen Module. Es ist fraglich, ob es überhaupt möglich ist, die Werte der FEK bezüglich der Heizkurve auszulesen oder diese extern zu schreiben. Letzteres wäre nur möglich, wenn mehrere FEKs erlaubt sind. 
 
 Schlussfolgerung: Zunächst muss das Abfragen und Beschreiben des Busses umgesetzt und ein Scan auf die FEK durchgeführt werden.
 
-´
+```
       Boiler ->Write on HeatingModule_Broadcast HILFSKESSELSOLL = 23.9
       Received frame 301 [7] D0000151450000
       RemoteControl ->Write on ComfortSoft FEHLERMELDUNG = 20805
@@ -101,4 +101,5 @@ Schlussfolgerung: Zunächst muss das Abfragen und Beschreiben des Busses umgeset
       Boiler ->Write on HeatingModule_Broadcast HILFSKESSELSOLL = 23.9
       Received frame 301 [7] D0000151450000
       RemoteControl ->Write on ComfortSoft FEHLERMELDUNG = 20805
+```
 

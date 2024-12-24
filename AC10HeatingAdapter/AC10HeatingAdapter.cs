@@ -8,10 +8,9 @@ namespace AC10Service;
 //soll AC10HeatingAdapter
 internal class AC10HeatingAdapter
 {
-    private readonly ILogger<AC10HeatingAdapter> _logger;
-
-    private Action<string>?         _sendLineCallback;
-    private Action<string,string>?  _sendReadingCallback;
+    private readonly ILogger<AC10HeatingAdapter>  _logger;
+    private Action<string>?                       _sendLineCallback;
+    private Action<string,string>?                _sendReadingCallback;
 
     public AC10HeatingAdapter(ILogger<AC10HeatingAdapter> logger)
     {
@@ -35,27 +34,27 @@ internal class AC10HeatingAdapter
         }
     }
 
-/*
-    bool KCanElster::GetValue(unsigned short receiver_id, unsigned short elster_idx, unsigned short & Value)
-{
-  InitSendFrame(receiver_id, elster_idx);
 
-  if (Send() && RecvFrame.Len == 7)
-  {
-    int val = -1;
-    
-    val = RecvFrame.GetValue();
-    if (val < 0)
+    public bool RequestElsterValue(ushort senderCanId,ushort receiverCanId, ushort elster_idx, ushort elster_value)
+    {
+      ElsterCANFrame  frame = new ElsterCANFrame(senderCanId,(ElsterModule)receiverCanId,ElsterTelegramType.Write,elster_idx,elster_value);
+
+      /*
+      if (Send() && RecvFrame.Len == 7)
+      {
+        int val = -1;
+        
+        val = RecvFrame.GetValue();
+        if (val < 0)
+          return false;
+        
+        Value = (unsigned short) val;
+        
+        return true;
+      }
+      */
       return false;
-    
-    Value = (unsigned short) val;
-    
-    return true;
-  }
-
-  return false;
-}
-*/
+    }
    
 
     private bool SendLine(String line)

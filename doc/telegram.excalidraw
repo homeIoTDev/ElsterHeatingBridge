@@ -43,7 +43,7 @@
       "type": "rectangle",
       "x": 284.90130988566443,
       "y": 1321.3923790198455,
-      "width": 12.394969280998744,
+      "width": 9.718876946947042,
       "height": 25.869900357968902,
       "angle": 0,
       "strokeColor": "#1971c2",
@@ -60,8 +60,8 @@
         "type": 3
       },
       "seed": 1245099075,
-      "version": 258,
-      "versionNonce": 1725104291,
+      "version": 265,
+      "versionNonce": 1360045501,
       "isDeleted": false,
       "boundElements": [
         {
@@ -69,7 +69,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1733058500653,
+      "updated": 1735044521423,
       "link": null,
       "locked": false
     },
@@ -107,8 +107,8 @@
       "id": "rAIZWut4GT9SXvgW43mLX",
       "type": "text",
       "x": 257.7926199621279,
-      "y": 1323.5603667100588,
-      "width": 321.09991455078125,
+      "y": 1324.48791797959,
+      "width": 314.4798889160156,
       "height": 25,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -123,20 +123,20 @@
       "index": "a1",
       "roundness": null,
       "seed": 1238563853,
-      "version": 157,
-      "versionNonce": 2062076451,
+      "version": 177,
+      "versionNonce": 1239083699,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1733052246999,
+      "updated": 1735044504831,
       "link": null,
       "locked": false,
-      "text": "| A1 00 | FA 07 | A9 00 | 0000 |",
+      "text": "| A1|00 | FA |07 | A9 |00 | 00   ",
       "fontSize": 20,
       "fontFamily": 5,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "| A1 00 | FA 07 | A9 00 | 0000 |",
+      "originalText": "| A1|00 | FA |07 | A9 |00 | 00   ",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -685,9 +685,9 @@
     {
       "id": "QG1jN4TPt1A_Jnl1oR1hA",
       "type": "rectangle",
-      "x": 382.6891006089147,
+      "x": 386.96880203133617,
       "y": 1321.7285336676712,
-      "width": 75.18653973860981,
+      "width": 80.8465990612819,
       "height": 25.552462045551017,
       "angle": 0,
       "strokeColor": "#e03131",
@@ -704,8 +704,8 @@
         "type": 3
       },
       "seed": 1874583555,
-      "version": 307,
-      "versionNonce": 1501694403,
+      "version": 363,
+      "versionNonce": 1025546493,
       "isDeleted": false,
       "boundElements": [
         {
@@ -717,7 +717,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1733052747544,
+      "updated": 1735044560577,
       "link": null,
       "locked": false
     },
@@ -769,10 +769,10 @@
     {
       "id": "R3Xg_9kUGpe6mfPnirady",
       "type": "arrow",
-      "x": 425.4809494193714,
-      "y": 1322.4751483788134,
-      "width": 88.16321173873462,
-      "height": 67.54477509826779,
+      "x": 429.1253034871206,
+      "y": 1320.7285336676712,
+      "width": 84.51885767098543,
+      "height": 65.79816038712556,
       "angle": 0,
       "strokeColor": "#e03131",
       "backgroundColor": "transparent",
@@ -788,11 +788,11 @@
         "type": 2
       },
       "seed": 1868502659,
-      "version": 38,
-      "versionNonce": 1617045187,
+      "version": 95,
+      "versionNonce": 1056862557,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1733073323788,
+      "updated": 1735044560577,
       "link": null,
       "locked": false,
       "points": [
@@ -801,8 +801,8 @@
           0
         ],
         [
-          88.16321173873462,
-          -67.54477509826779
+          84.51885767098543,
+          -65.79816038712556
         ]
       ],
       "lastCommittedPoint": null,
@@ -825,9 +825,9 @@
     {
       "id": "55rHENBExbJBLCkk1jvbs",
       "type": "rectangle",
-      "x": 462.691400677504,
+      "x": 473.046301745595,
       "y": 1320.4757527134363,
-      "width": 123.99916857383967,
+      "width": 87.02143817816919,
       "height": 28.08819370200423,
       "angle": 0,
       "strokeColor": "#9c36b5",
@@ -844,8 +844,8 @@
         "type": 3
       },
       "seed": 855529219,
-      "version": 359,
-      "versionNonce": 1423753325,
+      "version": 438,
+      "versionNonce": 882201747,
       "isDeleted": false,
       "boundElements": [
         {
@@ -853,7 +853,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1733052738945,
+      "updated": 1735044553378,
       "link": null,
       "locked": false
     },
@@ -908,7 +908,7 @@
       "type": "arrow",
       "x": 593.3895609989186,
       "y": 1389.3961898264758,
-      "width": 44.16192400278305,
+      "width": 47.84235172258593,
       "height": 39.642603986637596,
       "angle": 0,
       "strokeColor": "#9c36b5",
@@ -925,11 +925,11 @@
         "type": 2
       },
       "seed": 602495619,
-      "version": 34,
-      "versionNonce": 171406829,
+      "version": 115,
+      "versionNonce": 652315603,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1733073407473,
+      "updated": 1735044553944,
       "link": null,
       "locked": false,
       "points": [
@@ -938,7 +938,7 @@
           0
         ],
         [
-          -44.16192400278305,
+          -47.84235172258593,
           -39.642603986637596
         ]
       ],
@@ -964,7 +964,7 @@
       "type": "arrow",
       "x": 586.3357122920091,
       "y": 1491.9396491864993,
-      "width": 167.16368415003433,
+      "width": 160.87139808925963,
       "height": 177.34858647091096,
       "angle": 0,
       "strokeColor": "#9c36b5",
@@ -981,11 +981,11 @@
         "type": 2
       },
       "seed": 96967565,
-      "version": 105,
-      "versionNonce": 822882381,
+      "version": 162,
+      "versionNonce": 205667773,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1733073407473,
+      "updated": 1735044560577,
       "link": null,
       "locked": false,
       "points": [
@@ -998,7 +998,7 @@
           34.4670225530424
         ],
         [
-          -167.16368415003433,
+          -160.87139808925963,
           -142.88156391786856
         ]
       ],
@@ -1580,6 +1580,43 @@
       "verticalAlign": "top",
       "containerId": null,
       "originalText": "The upper four bits of the \nCAN ID and simultaneously the \nmodule type of the Elster \nprotocol. For example, \n301 hex (all 11 bits) defines\nthe type RemoteControl(FEK).",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "Xcr0uJVP2poltR8mVFM2a",
+      "type": "text",
+      "x": 598.808422543276,
+      "y": 1324.1646587458433,
+      "width": 519.819580078125,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b03",
+      "roundness": null,
+      "seed": 617634525,
+      "version": 112,
+      "versionNonce": 1011527197,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1735044689255,
+      "link": null,
+      "locked": false,
+      "text": "= data array length is 5 or with enhanced telegram 7.",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "= data array length is 5 or with enhanced telegram 7.",
       "autoResize": true,
       "lineHeight": 1.25
     }

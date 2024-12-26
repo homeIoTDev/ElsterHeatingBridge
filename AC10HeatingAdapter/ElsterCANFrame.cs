@@ -173,6 +173,15 @@ public class ElsterCANFrame
     }
 
     /// <summary>
+    /// Erstellt eine neue Instanz der <see cref="CanFrame"/> Klasse aus der <see cref="ElsterCANFrame"/> Klasse.
+    /// </summary>
+    /// <returns>Neue Instanz der <see cref="CanFrame"/> Klasse</returns>
+    public StandardCanFrame ToCanFrame()
+    {
+        return new StandardCanFrame(SenderCanId, Data);
+    }
+
+    /// <summary>
     /// Initialisiert die Eigenschaften der <see cref="ElsterCANFrame"/> Klasse.
     /// </summary>
     private void Initialize()

@@ -128,7 +128,8 @@ public partial class UsbTinCanBusAdapter: IDisposable
             readLinesFromPortStartedSemaphore.Wait();
             if(_sendReadingCallback!=null)
             {
-                _ac10HeatingAdapter.Start(SendLineWithoutResponse, _sendReadingCallback);
+                // Start AC10HeatingAdapter und übergibt die CallBacks
+                _ac10HeatingAdapter.Start(SendCanFrame, _sendReadingCallback);
             }
             else
             {    
@@ -180,6 +181,13 @@ public partial class UsbTinCanBusAdapter: IDisposable
             Reset();
             return;
         }
+    }
+
+    public bool SendCanFrame(CanFrame frame)
+    {
+        string line = frame.ToUsbTinString();
+        CanAdapterResponse? response = SendLine(line);
+        return (response!=null)?(response == CanAdapterResponse.OK):false;
     }
 
     public void SendLineWithoutResponse(string line)

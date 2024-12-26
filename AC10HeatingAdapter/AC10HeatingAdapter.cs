@@ -9,7 +9,7 @@ namespace AC10Service;
 internal class AC10HeatingAdapter
 {
     private readonly ILogger<AC10HeatingAdapter>  _logger;
-    private Action<string>?                       _sendLineCallback;
+    private Func<CanFrame, bool>?                 _sendCanFrameCallback;
     private Action<string,string>?                _sendReadingCallback;
 
     public AC10HeatingAdapter(ILogger<AC10HeatingAdapter> logger)
@@ -37,13 +37,26 @@ internal class AC10HeatingAdapter
 
     public bool RequestElsterValue(ushort senderCanId,ushort receiverCanId, ushort elster_idx, ushort elster_value)
     {
-      ElsterCANFrame  frame = new ElsterCANFrame(senderCanId,(ElsterModule)receiverCanId,ElsterTelegramType.Write,elster_idx,elster_value);
+      ElsterCANFrame  frame = new ElsterCANFrame(
+                                      senderCanId,
+                                      (ElsterModule)receiverCanId,
+                                      ElsterTelegramType.Write,
+                                      elster_idx,
+                                      elster_value);
 
+      StandardCanFrame sendCanFrame = frame.ToCanFrame();
+      string usbTinString = sendCanFrame.ToUsbTinString();
+      if( SendCanFrame(sendCanFrame) == true)
+      {
+          //Warten bis eine Antwort passend zum versendeten Frame kommt oder ein Timeout auftritt
+          //TODO: Timeout implementieren
+          return true;
+      }
       /*
       if (Send() && RecvFrame.Len == 7)
       {
         int val = -1;
-        
+      
         val = RecvFrame.GetValue();
         if (val < 0)
           return false;
@@ -56,22 +69,23 @@ internal class AC10HeatingAdapter
       return false;
     }
    
-
-    private bool SendLine(String line)
+    /// <summary>
+    /// Sendet ein CAN-Frame an den CAN-Bus über ein Callback.
+    /// </summary>
+    /// <param name="frame">CAN-Frame, der gesendet werden soll</param>
+    private bool SendCanFrame(CanFrame frame)
     {
-        if (_sendLineCallback != null )
+        if (_sendCanFrameCallback != null )
         {
-            _sendLineCallback(line);
-            return true;
+            return _sendCanFrameCallback(frame);
         }
-
         return false;
     }
 
-    public void Start(Action<string> sendLineCallback, Action<string,string> sendReadingCallback)
+    public void Start(Func<CanFrame, bool> sendCanFrameCallback, Action<string, string> sendReadingCallback)
     {
-        _logger.LogInformation("Starting AC10HeatingAdapter...");
-        _sendLineCallback       = sendLineCallback;
-        _sendReadingCallback    = sendReadingCallback;    
+      _logger.LogInformation("Starting AC10HeatingAdapter...");
+      _sendCanFrameCallback = sendCanFrameCallback;
+      _sendReadingCallback  = sendReadingCallback;
     }
 }

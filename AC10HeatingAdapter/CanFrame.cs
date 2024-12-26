@@ -1,6 +1,6 @@
 namespace AC10Service;
 
-public class CanFrame
+public abstract class CanFrame
 {
     public uint SenderCanId { get; set; }
     public byte[] Data { get; set; }
@@ -23,11 +23,25 @@ public class CanFrame
         return data;
     }
 
-    internal string DataToString()
+    /// <summary>
+    /// Erzeugt ein USB-TIN-String zum Senden aus dem aktuellen CAN frame (Standard oder Erweitert).
+    /// </summary>
+    /// <returns>Gibt einen USB-TIN-String zurück</returns>
+    public abstract string ToUsbTinString();
+
+    /// <summary>
+    /// Gibt die Daten als Hex-String zurück. Wenn <paramref name="withLength"/> true ist, 
+    /// wird die Länge der Daten mit angegeben im Format [L] ddddd zurueckgegeben. Ohne 
+    /// <paramref name="withLength"/> wird nur die Daten als Hex zurückgegeben
+    /// </summary>
+    /// <param name="withLength"></param>
+    /// <returns>Daten als Hex-String</returns>
+    protected string DataToString(bool withLength = true)
     {
-        string retString = $"[{Data.Length:X1}] ";
+        string retString = (withLength)?$"[{Data.Length:X1}] ":"";
         for (int i = 0; i < Data.Length; i++)
             retString += $"{Data[i]:X2}";
         return retString;
     }
+
 }

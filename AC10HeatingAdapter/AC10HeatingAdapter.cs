@@ -37,14 +37,16 @@ internal class AC10HeatingAdapter
 
     public bool RequestElsterValue(ushort senderCanId,ushort receiverCanId, ushort elster_idx, ushort elster_value)
     {
-      ElsterCANFrame  frame = new ElsterCANFrame(
+      ElsterCANFrame  elsterFrame = new ElsterCANFrame(
                                       senderCanId,
                                       (ElsterModule)receiverCanId,
                                       ElsterTelegramType.Write,
                                       elster_idx,
                                       elster_value);
-
-      StandardCanFrame sendCanFrame = frame.ToCanFrame();
+     
+      
+      StandardCanFrame sendCanFrame = elsterFrame.ToCanFrame();
+      
       string usbTinString = sendCanFrame.ToUsbTinString();
       if( SendCanFrame(sendCanFrame) == true)
       {
@@ -53,6 +55,41 @@ internal class AC10HeatingAdapter
           return true;
       }
       /*
+bool KCanElster::GetDoubleValue(unsigned short first_val,
+                                unsigned scan_can_id,
+                                unsigned short elster_idx,
+                                unsigned char elster_type,
+                                double & result)
+{
+  if (first_val == 0x8000)
+    return false;
+
+  if (elster_type != et_double_val &&
+      elster_type != et_triple_val)
+    return false;
+
+  unsigned short sec_val;
+  unsigned short third_val;
+  NUtils::SleepMs(100);
+  if (!GetValue(scan_can_id, elster_idx - 1, sec_val))
+    return false;
+
+  result = (double)(first_val) + (double)(sec_val) / 1000.0;
+
+  if (elster_type == et_triple_val)
+  {
+    NUtils::SleepMs(100);
+    if (!GetValue(scan_can_id, elster_idx - 2, third_val))
+      return false;
+
+    result += (double)(third_val) / 1000000.0;
+  }
+  return true;
+}
+
+
+
+
       if (Send() && RecvFrame.Len == 7)
       {
         int val = -1;

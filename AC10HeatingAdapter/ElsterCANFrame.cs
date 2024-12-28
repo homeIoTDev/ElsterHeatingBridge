@@ -390,11 +390,12 @@ public class ElsterCANFrame
         if (ind < 0)
             return "";
         var elsterEntry = KElsterTable.ElsterTable[ind];
-        KElsterTable.ElsterType elsterType = elsterEntry.Type;
+        ElsterValueType elsterType = elsterEntry.Type;
         int elsterValue = GetValue();
         if (elsterValue ==-1)
             return "";
-        return KElsterTable.GetValueString(elsterType, (short)elsterValue);    
+        ElsterValue value = new ElsterValue((ushort)elsterValue, elsterType);
+        return value.GetValueString();    
     }
 
     /// <summary>
@@ -438,14 +439,14 @@ public class ElsterCANFrame
             return;
         }
 
-        IsKnownElsterIndex  = true;
-        var elsterEntry     = KElsterTable.ElsterTable[ind];
-        string elsterValue  = "= "+ KElsterTable.GetValueString(elsterEntry.Type, (short)GetValue());
+        IsKnownElsterIndex      = true;
+        var elsterEntry         = KElsterTable.ElsterTable[ind];
+        string elsterValueString= GetValueString(); 
         //If this is a request, then the value is always 0 and also unimportant, as it is being requested
         if(TelegramType == ElsterTelegramType.Read) {
-            elsterValue = "";
+            elsterValueString = "";
         }
-        _toStringString = $"{fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} {elsterEntry.Name} {elsterValue}";
+        _toStringString = $"{fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} {elsterEntry.Name} {elsterValueString}";
     }
 
     /// <summary>

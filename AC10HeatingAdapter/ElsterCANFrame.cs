@@ -54,12 +54,6 @@ namespace AC10Service;
 /// </summary>
 public class ElsterCANFrame
 {
-    //unsigned Counter;
-    //int      TimeStampDay;
-    //int      TimeStampMs;
-    //int      Len;
-    //unsigned Flags;
-
     private string _toStringString  = "";   // Cache für ToString(), wird in ValidateAndGenerateToString() gesetzt
     private ushort _elsterIndex     = 0xfa; // Das Member ElsterIndex, das mit  0xfa fehlerhaft ist, wird in ValidateAndGenerateToString() gesetzt.
    
@@ -82,11 +76,11 @@ public class ElsterCANFrame
     /// Er nimmt die Sender-CAN-ID und generiert das Datenarray aus den anderen Parametern.
     /// Alle Parameter werden validiert und nach der Validierung werden alle Eigenschaften gesetzt.
     /// </summary>
-    public ElsterCANFrame(uint senderCanId, ElsterModule receiverElsterModule, ElsterTelegramType telegramType, ushort elsterIndex, ushort value, bool enhancedTelegram = false)
+    public ElsterCANFrame(uint senderCanId, ElsterModule receiverElsterModule, ElsterTelegramType telegramType, ushort elsterIndex, ushort value, bool enhancedTelegram = true)
     {
         if(!enhancedTelegram)
         {
-            Data = new byte[4];
+            Data = new byte[5];
         }
         else
         {
@@ -361,7 +355,7 @@ public class ElsterCANFrame
     /// </summary>
     /// <param name="value">Der zu setzende Wert.</param>
     /// <returns>True, wenn der Wert erfolgreich gesetzt wurde, sonst false.</returns>
-    bool SetValue(ushort value)
+    private bool SetValue(ushort value)
     {
         if (Data.Length != 5 && Data.Length != 7)
             return false;
@@ -375,6 +369,18 @@ public class ElsterCANFrame
             Data[4] = (byte)(value & 0xff);
         }
         return true;
+    }
+
+    /// <summary>
+    /// Prüft, ob dieses Telegramm eine Antwort auf den ElsterCANFrame elsterCanFrame ist.
+    /// </summary>
+    public bool IsAnswerToElsterCanFrame(ElsterCANFrame elsterCanFrame)
+    {
+        // Check if this frame is an answer to the given frame by comparing:
+        // - if this frame's receiver matches the original sender
+        // - if both frames reference the same Elster index
+        return (this.ReceiverCanId == elsterCanFrame.SenderCanId) && 
+            (this.ElsterIndex == elsterCanFrame.ElsterIndex);
     }
 
     /// <summary>
@@ -412,7 +418,7 @@ public class ElsterCANFrame
         string toDeviceCanIdInvalid     = ReceiverCanId > 0x7ff ? "(invalid)" : "";
 
         if (Data.Length != 7) { 
-            _toStringString = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} with incorrect data length, expected 7. [{Data.Length}] {DataArrayToString()}";
+            _toStringString = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} with incorrect data length, expected 7. {DataArrayToString()}";
             IsValidTelegram = false;
             return;
         }
@@ -423,7 +429,7 @@ public class ElsterCANFrame
         short elsterIndex = GetElsterIndex();
         if (elsterIndex < 0)
         {
-            _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} without elster index.  [{Data.Length}] {DataArrayToString()}";
+            _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} without elster index. {DataArrayToString()}";
             IsValidTelegram = false;
             return;
         }

@@ -93,6 +93,11 @@ public class AC10HeatingMqttService: IHostedService
                 {
                     _usbTinCanBusAdapter.Reset();
                 }
+                else if(key == ConsoleKey.S)
+                {   //vond Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
+                    _usbTinCanBusAdapter.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                    _usbTinCanBusAdapter.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 
         }

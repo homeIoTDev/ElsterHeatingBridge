@@ -242,6 +242,10 @@ public class ElsterValue
         return retString.ToString();
     }
 
+    /// <summary>
+    /// Gibt den Wert des ElsterValues als String zurück und gibt bei unbekannten oder ungültigen Werten 
+    /// auch die Rohdaten zurück
+    /// </summary>
     public string GetValueString()
     {
         StringBuilder retString = new StringBuilder();

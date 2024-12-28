@@ -21,17 +21,17 @@ public class ExtendedCanFrame : CanFrame
     }
 
     /// <summary>
-    /// Erzeugt ein USB-TIN-String mit einem standard (11bit) CAN frame.
+    /// Erzeugt ein USB-TIN-String mit einem standard (29bit) CAN frame.
     /// </summary>
     /// <returns>Gibt einen USB-TIN-String zurueck</returns>
     public override string ToUsbTinString()
     {
-        //  iiiiiiiildd...
+        // Tiiiiiiiildd...  = Transmit an extended (29bit) CAN frame.
         // iiiiiiii      = Identifier in hex (00000000-1FFFFFFF)
         // l        = Data length (0-8) 
         // dd...    = Byte value in hex (00-FF). Numbers of dd pairs must match
         //            the data length, otherwise an error occur
-        string retString = $"{SenderCanId:X8}";
+        string retString = $"T{SenderCanId:X8}{Data.Length:X1}";
         retString += DataToString(false);
         return retString;
     }

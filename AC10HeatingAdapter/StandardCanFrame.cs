@@ -31,12 +31,12 @@ public class StandardCanFrame: CanFrame
     /// <returns>Gibt einen USB-TIN-String zurueck</returns>
     public override string ToUsbTinString()
     {
-        //  iiildd...
+        // tiiildd...  =  Transmit a standard (11bit) CAN frame.
         // iii      = identifier in hex (000-7FF)
         // l        = Data length (0-8) 
         // dd...    = Byte value in hex (00-FF). Numbers of dd pairs must match
         //            the data length, otherwise an error occur
-        string retString = $"{SenderCanId:X3}";
+        string retString = $"t{SenderCanId:X3}{Data.Length:X1}";
         retString += DataToString(false);
         return retString;
     }

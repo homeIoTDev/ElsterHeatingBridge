@@ -75,6 +75,7 @@ class Program
                 services.AddOptions();
                 services.Configure<UsbTinCanBusAdapterConfig>(hostContext.Configuration.GetSection("UsbTinCanBusAdapterConfig"));
                 services.Configure<AC10MqttAdapterConfig>(hostContext.Configuration.GetSection("AC10MqttAdapterConfig"));
+                services.Configure<AC10HeatingAdapterConfig>(hostContext.Configuration.GetSection("AC10HeatingAdapterConfig"));
                 services.AddSingleton<AC10MqttAdapter>();
                 services.AddSingleton<UsbTinCanBusAdapter>();
                 services.AddHostedService<AC10HeatingMqttService>();

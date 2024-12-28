@@ -21,7 +21,9 @@ public partial class UsbTinCanBusAdapter: IDisposable
 
     public enum CanAdapterResponse { OK, Error, Timeout };
 
-    public UsbTinCanBusAdapter(IOptions<UsbTinCanBusAdapterConfig> config, ILoggerFactory loggerFactory)
+    public UsbTinCanBusAdapter( IOptions<UsbTinCanBusAdapterConfig> config, 
+                                IOptions<AC10HeatingAdapterConfig> heatingAdapterConfig,
+                                ILoggerFactory loggerFactory)
     {
         _config         = config.Value;
         _logger         = loggerFactory.CreateLogger<UsbTinCanBusAdapter>();
@@ -30,8 +32,15 @@ public partial class UsbTinCanBusAdapter: IDisposable
         _openPortTimer  = new System.Timers.Timer(10000);
         _serialPort     = new SerialPort();
         ConfigureSerialPort();
-        _ac10HeatingAdapter = new AC10HeatingAdapter(loggerFactory.CreateLogger<AC10HeatingAdapter>());
+        _ac10HeatingAdapter = new AC10HeatingAdapter(heatingAdapterConfig.Value, loggerFactory.CreateLogger<AC10HeatingAdapter>());
 
+    }
+
+    public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx)
+    {
+       bool ret= _ac10HeatingAdapter.RequestElsterValue(senderCanId, receiverCanId, elster_idx);
+       _logger.LogInformation($"RequestElsterValue: {senderCanId} {receiverCanId} {elster_idx}  => {ret}");
+       return ret;
     }
 
     public void Start(Action<string,string> sendReadingCallback)

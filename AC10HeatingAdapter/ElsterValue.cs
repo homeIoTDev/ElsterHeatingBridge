@@ -6,18 +6,35 @@ namespace AC10Service;
 
 public class ElsterValue
 {
-    public const ushort ELSTER_NULL_VALUE = 0x8000;
-    private byte[] _valueByteArray;
+    public const ushort     ELSTER_NULL_VALUE = 0x8000;
+    private byte[]          _valueByteArray;
     private ElsterValueType _elsterValueType;
+
+
+    /// <summary>
+    /// Initialisiert eine neue Instanz von <see cref="ElsterValue"/> mit einem short-Wert und einem Elster-Wertetyp.
+    /// </summary>
+    /// <param name="value">Der zu speichernde Elster-Wert.</param>
+    /// <param name="elsterValueType">Der Typ des Elster-Werts.</param>
+    /// <remarks>
+    /// Der <see cref="ElsterValue"/> wird intern als 2-Byte-Array gespeichert.
+    /// </remarks>
     public ElsterValue(ushort value, ElsterValueType elsterValueType)
     {
         _valueByteArray     = BitConverter.GetBytes(value);
         _elsterValueType    = elsterValueType;
     }
 
+    /// <summary>
+    /// Initialisiert eine neue Instanz von <see cref="ElsterValue"/> mit einem Byte-Array und einem Elster-Wertetyp.
+    /// </summary>
+    /// <param name="valueByteArray">Das Byte-Array, das den zu speichernden Wert enthält. Muss 2,4 oder 6 Bytes lang sein.</param>
+    /// <param name="elsterValueType">Der Elster-Wertetyp, der angibt, wie das Byte-Array interpretiert werden soll.</param>
+    /// <exception cref="ArgumentException">Wird ausgelöst, wenn das Byte-Array eine ungültige Länge hat.</exception>
     public ElsterValue(byte[] valueByteArray, ElsterValueType elsterValueType)
     {
-        if( valueByteArray.Length < 2) throw new ArgumentException("valueByteArray has to be minimum of 2 bytes");
+        if( valueByteArray.Length != 2 && valueByteArray.Length != 4 && valueByteArray.Length != 6)
+            throw new ArgumentException("valueByteArray has to be 2, 4 or 6 bytes long");
         _valueByteArray     = valueByteArray;
         _elsterValueType    = elsterValueType;
     }
@@ -70,7 +87,7 @@ public class ElsterValue
             case ElsterValueType.et_little_endian:
                 return ((shortValue >> 8) + 256*(shortValue & 0xff));  //signed value
             case ElsterValueType.et_zeit:
-                return (Hour: (ushort)shortValue  >> 8, Minute: (ushort)shortValue  & 0xff);
+                return (Hour: (ushort)shortValue >> 8, Minute: (ushort)shortValue  & 0xff);
             case ElsterValueType.et_datum:
                 return (Day: (ushort)shortValue  >> 8, Month: (ushort)shortValue  & 0xff);
             case ElsterValueType.et_time_domain:
@@ -103,7 +120,96 @@ public class ElsterValue
                 return null;
         }
     }
-
+   
+    /// <summary>
+    /// Gibt den short-Wert des ElsterValues zurück (et_default).
+    /// </summary>
+    /// <returns>Der short-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public short? GetShortValue() => (short?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_default);
+    /// <summary>
+    /// Gibt den double-Wert mit einer Dezimalstelle des ElsterValues zurück (et_dec_val).
+    /// </summary>
+    /// <returns>Der double-Wert des ElsterValues mit einer Dezimalstelle oder null wenn der Typ nicht passt.</returns>
+    public double? GetDecimalValue() => (double?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_dec_val);
+    /// <summary>
+    /// Gibt den double-Wert mit zwei Dezimalstellen des ElsterValues zurück (et_cent_val).
+    /// </summary>
+    /// <returns>Der double-Wert des ElsterValues mit zwei Dezimalstellen oder null wenn der Typ nicht passt.</returns>
+    public double? GetCentValue() => (double?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_cent_val);
+    /// <summary>
+    /// Gibt den double-Wert mit drei Dezimalstellen des ElsterValues zurück (et_mil_val).
+    /// </summary>
+    /// <returns>Der double-Wert des ElsterValues mit drei Dezimalstellen oder null wenn der Typ nicht passt.</returns>
+    public double? GetMilValue() => (double?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_mil_val);
+    /// <summary>
+    /// Gibt den sbyte-Wert des ElsterValues zurück (et_byte).
+    /// </summary>
+    /// <returns>Der sbyte-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public sbyte? GetByteValue() => (sbyte?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_byte);
+    /// <summary>
+    /// Gibt den bool-Wert des ElsterValues zurück(et_bool).
+    /// </summary>
+    /// <returns>Der bool-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public bool? GetBooleanValue() => (bool?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_bool);
+    /// <summary>
+    /// Gibt den bool-Wert des ElsterValues aus einem Little-Endian-Form zurück (et_little_bool).
+    /// </summary>
+    /// <returns>Der bool-Wert des ElsterValues in Little-Endian-Form oder null wenn der Typ passt.</returns>
+    public bool? GetLittleBooleanValue() => (bool?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_little_bool);
+    /// <summary>
+    /// Gibt den double-Wert des ElsterValues zurück (et_double_val, das aus zwei Telegrammen besteht).
+    /// </summary>
+    /// <returns>Der double-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public double? GetDoubleValue() => (double?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_double_val);
+    /// <summary>
+    /// Gibt den double-Wert des ElsterValues zurück (et_triple_val, das aus drei Telegrammen besteht).
+    /// </summary>
+    /// <returns>Der double-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public double? GetTripleValue() => (double?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_triple_val);
+    /// <summary>
+    /// Gibt den int-Wert des ElsterValues aus einem Little-Endian-Form zurück.(et_little_endian).
+    /// </summary>
+    /// <returns>Der int-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public int? GetIntValue() => (int?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_little_endian);
+    /// <summary>
+    /// Gibt den string-Wert des ElsterValues aus der Liste-Betriebsarten wie z.B 'Notbetrieb' zurück (et_betriebsart).
+    /// </summary>
+    /// <returns>Der string-Wert des ElsterValues aus der Liste-Betriebsarten oder null wenn der Typ nicht passt.</returns>
+    public string? GetBetriebsartValue() => (string?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_betriebsart);
+    /// <summary>
+    /// Gibt den TimeSpan-Wert des ElsterValues in der Form "HH:mm" zurück (et_zeit).
+    /// </summary>
+    /// <returns>Der TimeSpan-Wert des ElsterValues in der Form "HH:mm" oder null wenn der Typ nicht passt.</returns>
+    public TimeSpan? GetTimeValue() => (TimeSpan?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_zeit);
+    /// <summary>
+    /// Gibt den (int Day, int Month)-Wert des ElsterValues in der Form "DD-MM" zurück (et_datum).
+    /// </summary>
+    /// <returns>Der (int Day, int Month)-Wert des ElsterValues in der Form "DD-MM" oder null wenn der Typ nicht passt.</returns>
+    public (int Day, int Month)? GetDateValue() => ((int Day, int Month)?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_datum);
+    /// <summary>
+    /// Gibt den (TimeSpan StartTime, TimeSpan EndTime)-Wert des ElsterValues in der Form "HH:mm-HH:mm" zurück (et_time_domain).
+    /// </summary>
+    /// <returns>Der (TimeSpan StartTime, TimeSpan EndTime)-Wert des ElsterValues in der Form "HH:mm-HH:mm" oder null wenn der Typ passt.</returns>
+    public (TimeSpan StartTime, TimeSpan EndTime)? GetTimeDomainValue() => ((TimeSpan StartTime, TimeSpan EndTime)?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_time_domain);
+    /// <summary>
+    /// Gibt die DeviceNr als ushort-Wert des ElsterValues zurück (et_dev_nr).
+    /// </summary>
+    /// <returns>Die DeviceNr als ushort-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public ushort? GetDeviceNrValue() => (ushort?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_dev_nr);
+    /// <summary>
+    /// Gibt die Device-Id als string im Format x-x zurück. (et_dev_id).
+    /// </summary>
+    /// <returns>Die Device-Id als string im Format x-x oder null wenn der Typ nicht passt.</returns>
+    public string? GetDeviceIdValue() => (string?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_dev_id);
+    /// <summary>
+    /// Gibt den string-Wert aus der ErrorList des ElsterValues zurück (et_err_nr).
+    /// </summary>
+    /// <returns>Der string-Wert aus der ErrorList des ElsterValues oder null wenn der Typ nicht passt.</returns>
+    public string? GetErrorNrValue() => (string?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_err_nr);
+    /// <summary>
+    /// Gibt den Wert des ElsterValues in einem Object zurück.
+    /// </summary>
+    /// <returns>Der Wert des ElsterValues in einem Object oder null wenn der Typ nicht bekannt ist.</returns>
     public object? GetValue()
     {
         return ConvertByteArrayToType(_valueByteArray, _elsterValueType);

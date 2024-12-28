@@ -435,7 +435,14 @@ public class ElsterCANFrame
         int ind = KElsterTable.ElsterTabIndex[ElsterIndex];
         if (ind < 0)
         {
-            _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {ElsterIndex:X4}, with possible data: '{GetValue()}' [{Data.Length}] {DataArrayToString()}";
+            string allPossibleInterpretableValues="";
+            int shortValue = GetValue();
+             if (shortValue != -1)
+             {
+                ElsterValue value = new ElsterValue((ushort)shortValue, ElsterValueType.et_default);
+                allPossibleInterpretableValues = value.GetAllPossibleInterpretableValues();
+             }
+            _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {ElsterIndex:X4}, with possible data: '{GetValue()} - ({allPossibleInterpretableValues})' {DataArrayToString()}";
             return;
         }
 

@@ -215,6 +215,33 @@ public class ElsterValue
         return ConvertByteArrayToType(_valueByteArray, _elsterValueType);
     }
 
+    /// <summary>
+    /// Gibt eine durch Kommas getrennte Zeichenkette aller möglichen Interpretationen des Byte-Array-Wertes
+    /// basierend auf verschiedenen ElsterValueType-Konvertierungen zurück.
+    /// </summary>
+    /// <returns>
+    /// Eine Zeichenkette, die alle gültigen Wertinterpretationen im Format "Typ: Wert" enthält,
+    /// getrennt durch Kommas. Enthält nur Konvertierungen, die zu Nicht-Null-Werten führen.
+    /// </returns>
+    public string GetAllPossibleInterpretableValues()
+    {
+        StringBuilder retString = new StringBuilder();
+
+        foreach (ElsterValueType type in Enum.GetValues(typeof(ElsterValueType)))
+        {
+            object? value = ConvertByteArrayToType(_valueByteArray, type);
+            if (value != null)
+            {
+                if (retString.Length > 0)
+                {
+                    retString.Append(", ");
+                }
+                retString.Append($"{type}: {value}");
+            }
+        }
+        return retString.ToString();
+    }
+
     public string GetValueString()
     {
         StringBuilder retString = new StringBuilder();

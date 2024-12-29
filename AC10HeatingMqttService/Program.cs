@@ -33,6 +33,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AC10Service;
 
@@ -76,8 +77,14 @@ class Program
                 services.Configure<UsbTinCanBusAdapterConfig>(hostContext.Configuration.GetSection("UsbTinCanBusAdapterConfig"));
                 services.Configure<AC10MqttAdapterConfig>(hostContext.Configuration.GetSection("AC10MqttAdapterConfig"));
                 services.Configure<AC10HeatingAdapterConfig>(hostContext.Configuration.GetSection("AC10HeatingAdapterConfig"));
-                services.AddSingleton<AC10MqttAdapter>();
+                services.AddSingleton<AC10MqttAdapter>();   //Verwendet AC10HeatingMqttService direkt
                 services.AddSingleton<UsbTinCanBusAdapter>();
+                services.AddSingleton<AC10HeatingAdapter>();
+                services.AddSingleton<IMqttService>(provider => provider.GetRequiredService<AC10MqttAdapter>());
+                services.AddSingleton<ICanBusService>(provider => provider.GetRequiredService<UsbTinCanBusAdapter>());  
+                services.AddSingleton(provider => new Lazy<IHeatingService>(provider.GetRequiredService<AC10HeatingAdapter>));
+                services.AddSingleton(provider => new Lazy<UsbTinCanBusAdapter>(provider.GetRequiredService<UsbTinCanBusAdapter>));
+                services.AddSingleton(provider => new Lazy<AC10MqttAdapter>(provider.GetRequiredService<AC10MqttAdapter>));                              
                 services.AddHostedService<AC10HeatingMqttService>();
             });
 

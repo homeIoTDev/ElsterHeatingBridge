@@ -10,12 +10,13 @@ public class AC10HeatingMqttService: IHostedService
 {
 
     private readonly ILogger<AC10HeatingMqttService>    _logger;
-    private readonly UsbTinCanBusAdapter                _usbTinCanBusAdapter;
-    private readonly AC10MqttAdapter                    _ac10MqttAdapter;
-    private readonly Dictionary<string, string>         _readings = new Dictionary<string, string>();
+    private readonly Lazy<UsbTinCanBusAdapter>          _usbTinCanBusAdapter;
+    private readonly Lazy<AC10MqttAdapter>              _ac10MqttAdapter;
     private readonly CancellationTokenSource            _cts = new CancellationTokenSource();
 
-    public AC10HeatingMqttService(ILogger<AC10HeatingMqttService> logger, UsbTinCanBusAdapter usbTinCanBusAdapter, AC10MqttAdapter ac10MqttAdapter)
+    public AC10HeatingMqttService(  ILogger<AC10HeatingMqttService> logger,
+                                    Lazy<UsbTinCanBusAdapter> usbTinCanBusAdapter,
+                                    Lazy<AC10MqttAdapter> ac10MqttAdapter)
     {
         _logger                 = logger;
         _usbTinCanBusAdapter    = usbTinCanBusAdapter;
@@ -26,8 +27,8 @@ public class AC10HeatingMqttService: IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting AC10HeatingMqttService...");
-        _ac10MqttAdapter.Start();
-        _usbTinCanBusAdapter.Start(SendReading);
+        _ac10MqttAdapter.Value.Start();
+        _usbTinCanBusAdapter.Value.Start();
         _ = Task.Run(() => ProcessConsoleInput(_cts.Token), _cts.Token);
         await Task.CompletedTask;
     }
@@ -36,8 +37,8 @@ public class AC10HeatingMqttService: IHostedService
     {
         _logger.LogInformation("Stopping AC10HeatingMqttService...");
         _cts.Cancel();
-        _usbTinCanBusAdapter.Stop();
-        _ac10MqttAdapter.Stop();
+        _usbTinCanBusAdapter.Value.Stop();
+        _ac10MqttAdapter.Value.Stop();
         // Your shutdown logic here
         await Task.CompletedTask;
     }
@@ -61,69 +62,40 @@ public class AC10HeatingMqttService: IHostedService
                 _logger.LogInformation("Input: {key}", key);
                 if (key == ConsoleKey.R)
                 { 
-                    StringBuilder logMessage = new StringBuilder();
-                    foreach (var item in _readings)
-                    {
-                        logMessage.AppendLine($"Reading: {item.Key} = {item.Value}");
-                    }
-                    logMessage.AppendLine($"Current Time: {DateTime.Now}");
-                    _logger.LogInformation(logMessage.ToString());
+                    _ac10MqttAdapter.Value.LogAllReadings();
                 } 
                 else if(key == ConsoleKey.C)
                 {
-                    _usbTinCanBusAdapter.SendLineWithoutResponse("C");
+                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("C");
                 }
                 else if(key == ConsoleKey.O)
                 {
-                    _usbTinCanBusAdapter.SendLineWithoutResponse("O");
+                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("O");
                 }
                 else if(key == ConsoleKey.N)
                 {
-                    _usbTinCanBusAdapter.SendLineWithoutResponse("");
+                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("");
                 }                
                 else if(key == ConsoleKey.F)
                 {
-                    _usbTinCanBusAdapter.SendLineWithoutResponse("F");
+                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("F");
                 }
                 else if(key == ConsoleKey.V)
                 {
-                    _usbTinCanBusAdapter.SendLineWithoutResponse("V");
+                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("V");
                 }                                
                 else if(key == ConsoleKey.D)
                 {
-                    _usbTinCanBusAdapter.Reset();
+                    _usbTinCanBusAdapter.Value.Reset();
                 }
                 else if(key == ConsoleKey.S)
-                {   //vond Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
-                    _usbTinCanBusAdapter.RequestElsterValue(0xFFFF,0x601, 0x0199);
-                    _usbTinCanBusAdapter.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                {   //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
+                    _usbTinCanBusAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                    _usbTinCanBusAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
                 }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 
         }
     }
-
-    private void SendReading(string name, string value)
-    {
-        if (_readings.ContainsKey(name))
-        {
-            if (_readings[name] != value)
-            {
-                _readings[name] = value;
-                SendMqttReading(name, value);
-            }
-        }
-        else
-        {
-            _readings.Add(name, value);
-            SendMqttReading(name, value);
-        }
-    }
-
-    private void SendMqttReading(string name, string value)
-    {
-        _ac10MqttAdapter.SendReading(name, value);
-    }
-
 }
 

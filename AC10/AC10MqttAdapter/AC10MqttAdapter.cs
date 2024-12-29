@@ -12,7 +12,7 @@ using System.Collections.Concurrent;
 
 namespace AC10Service;
 
-public class AC10MqttAdapter: IDisposable
+public class AC10MqttAdapter: IDisposable, IMqttService
 {
     private readonly    ILogger<AC10MqttAdapter>    _logger;
     private readonly    AC10MqttAdapterConfig       _config;
@@ -24,6 +24,8 @@ public class AC10MqttAdapter: IDisposable
     private             ConcurrentQueue<(string ReadingName, string Value)>
                                                     _sendingQueue = new ConcurrentQueue<(string ReadingName, string Value)>();
     private             AutoResetEvent              _newSendingQueueElementEvent = new AutoResetEvent(false);
+    private readonly    Dictionary<string, string>  _readings = new Dictionary<string, string>();
+
 
     public AC10MqttAdapter(IOptions<AC10MqttAdapterConfig> config, ILogger<AC10MqttAdapter> logger)
     {
@@ -75,7 +77,41 @@ public class AC10MqttAdapter: IDisposable
             }
         }
     }
-    public void SendReading(string readingName, string value)
+
+    /// <summary>
+    /// Setzt den Wert einer Heizungsvariable. Der Wert wird im MQTT-Adapter zwischengespeichert und
+    /// erst dann an den MQTT-Broker gesendet, wenn sich der Wert aendert.
+    /// </summary>
+    /// <param name="name">Name der Heizungsvariable</param>
+    /// <param name="value">Wert der Heizungsvariable</param>
+    public void SetReading(string name, string value)
+    {
+        if (_readings.ContainsKey(name))
+        {
+            if (_readings[name] != value)
+            {
+                _readings[name] = value;
+                SendReading(name, value);
+            }
+        }
+        else
+        {
+            _readings.Add(name, value);
+            SendReading(name, value);
+        }
+    }
+    public void LogAllReadings()
+    {
+        StringBuilder logMessage = new StringBuilder();
+        foreach (var item in _readings)
+        {
+            logMessage.AppendLine($"Reading: {item.Key} = {item.Value}");
+        }
+        logMessage.AppendLine($"Current Time: {DateTime.Now}");
+        _logger.LogInformation(logMessage.ToString());
+    }
+
+    private void SendReading(string readingName, string value)
     {
         _logger.LogInformation($"Enqueuing MQTT message to topic '{_config.Topic}/{readingName}' with payload '{value}'...");
         // Initialize the queue if not already done

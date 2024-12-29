@@ -2,25 +2,28 @@ using System;
 using System.Data;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Threading;
 using static AC10Service.KElsterTable;
 
 namespace AC10Service;
-//soll AC10HeatingAdapter
-internal class AC10HeatingAdapter
+
+public class AC10HeatingAdapter : IDisposable, IHeatingService
 {
     private readonly ILogger<AC10HeatingAdapter>    _logger;
-    private Func<CanFrame, bool>?                   _sendCanFrameCallback;
-    private Action<string,string>?                  _sendReadingCallback;
+    private ICanBusService                          _canBusService;
     private bool                                    _storeResponseFramesInQueue = false;
     private readonly BlockingCollection<ElsterCANFrame>_responseFramesQueue = new(new ConcurrentQueue<ElsterCANFrame>());
     private object                                  _sendLock = new();
     private AC10HeatingAdapterConfig                _heatingAdapterConfig;
 
-    public AC10HeatingAdapter(AC10HeatingAdapterConfig heatingAdapterConfig, ILogger<AC10HeatingAdapter> logger)
+    public AC10HeatingAdapter(IOptions<AC10HeatingAdapterConfig> heatingAdapterConfig,
+                              ICanBusService canBusService,
+                              ILogger<AC10HeatingAdapter> logger)
     {
-      _heatingAdapterConfig = heatingAdapterConfig;
+      _heatingAdapterConfig = heatingAdapterConfig.Value;
+      _canBusService = canBusService;
       _logger = logger;
     }
 
@@ -138,62 +141,61 @@ bool KCanElster::GetDoubleValue(unsigned short first_val,
     /// <param name="frame">CAN-Frame, der gesendet werden soll</param>
     private bool TrySendElsterCanFrame(ElsterCANFrame sendElsterCanFrame, out ElsterCANFrame? responseFrame, bool waitForAnswer = false)
     {
-        if (_sendCanFrameCallback != null )
+
+        lock(_sendLock)
         {
-          lock(_sendLock)
+          // Das ElsterCANFrame zu einem CAN-Bus-Frame konvertieren
+          StandardCanFrame sendCanFrame = sendElsterCanFrame.ToCanFrame();
+
+          for (int tryCount = 1; tryCount <= _heatingAdapterConfig.SendRetryCount; tryCount++)  // 3 Versuche
           {
-            // Das ElsterCANFrame zu einem CAN-Bus-Frame konvertieren
-            StandardCanFrame sendCanFrame = sendElsterCanFrame.ToCanFrame();
-
-            for (int tryCount = 1; tryCount <= _heatingAdapterConfig.SendRetryCount; tryCount++)  // 3 Versuche
+            if(waitForAnswer) // Wir wollen sofort die Antworten zwischenspeichern
             {
-              if(waitForAnswer) // Wir wollen sofort die Antworten zwischenspeichern
-              {
-                // Elemente entfernen, bis die Sammlung leer ist
-                while (!_responseFramesQueue.IsCompleted && _responseFramesQueue.TryTake(out responseFrame)) 
-                {  }
-                _storeResponseFramesInQueue = true;
-              }
-              try 
-              {
-                // Versuche das CAN-Frame an den CAN-Bus zu senden
-                bool ret = _sendCanFrameCallback(sendCanFrame);
-                if(ret) {
+              // Elemente entfernen, bis die Sammlung leer ist
+              while (!_responseFramesQueue.IsCompleted && _responseFramesQueue.TryTake(out responseFrame)) 
+              {  }
+              _storeResponseFramesInQueue = true;
+            }
+            try 
+            {
+              // Versuche das CAN-Frame an den CAN-Bus zu senden
+              bool ret = _canBusService.SendCanFrame(sendCanFrame);
+              if(ret) {
 
-                  if(waitForAnswer)
+                if(waitForAnswer)
+                {
+                  DateTime startWaitTime    = DateTime.Now.AddMilliseconds(_heatingAdapterConfig.MaxReceivingWaitTime);
+                  TimeSpan currentWaitTime  = startWaitTime - DateTime.Now;
+                  ElsterCANFrame? possibleResponseFrame = null;
+                  while(_responseFramesQueue.TryTake(out possibleResponseFrame, currentWaitTime ))
                   {
-                    DateTime startWaitTime    = DateTime.Now.AddMilliseconds(_heatingAdapterConfig.MaxReceivingWaitTime);
-                    TimeSpan currentWaitTime  = startWaitTime - DateTime.Now;
-                    ElsterCANFrame? possibleResponseFrame = null;
-                    while(_responseFramesQueue.TryTake(out possibleResponseFrame, currentWaitTime ))
+                    if(possibleResponseFrame != null)
                     {
-                      if(possibleResponseFrame != null)
+                      if(possibleResponseFrame.IsAnswerToElsterCanFrame(sendElsterCanFrame))
                       {
-                        if(possibleResponseFrame.IsAnswerToElsterCanFrame(sendElsterCanFrame))
-                        {
-                          responseFrame = possibleResponseFrame;
-                          return true;
-                        }
+                        responseFrame = possibleResponseFrame;
+                        return true;
                       }
-                      currentWaitTime = startWaitTime - DateTime.Now;  // Restzeit aktualisieren
                     }
-                  }
-                  else{
-                    responseFrame = null;
-                    return true;
+                    currentWaitTime = startWaitTime - DateTime.Now;  // Restzeit aktualisieren
                   }
                 }
+                else{
+                  responseFrame = null;
+                  return true;
+                }
               }
-              finally
-              {
-                _storeResponseFramesInQueue = false;
-              }
-              _logger.LogWarning($"Failed to send frame {sendElsterCanFrame.ToString()} to CAN-Bus, retry {tryCount}/{_heatingAdapterConfig.SendRetryCount}...");
-              Thread.Sleep(_heatingAdapterConfig.SendRetryDelay);
             }
-          }  
-        }
-        // Es kann nicht gesendet werden, da der Callback nicht definiert ist
+            finally
+            {
+              _storeResponseFramesInQueue = false;
+            }
+            _logger.LogWarning($"Failed to send frame {sendElsterCanFrame.ToString()} to CAN-Bus, retry {tryCount}/{_heatingAdapterConfig.SendRetryCount}...");
+            Thread.Sleep(_heatingAdapterConfig.SendRetryDelay);
+          }
+        }  
+      
+        // Nach allen Versuchen konnte das CAN-Frame nicht gesendet werden
         responseFrame = null;
         return false;
     }
@@ -246,10 +248,10 @@ bool KCanElster::Send(unsigned count, bool WaitForAnswer, int inner_delay)
   return false;
 }
 */
-    public void Start(Func<CanFrame, bool> sendCanFrameCallback, Action<string, string> sendReadingCallback)
+
+    public void Dispose()
     {
-      _logger.LogInformation("Starting AC10HeatingAdapter...");
-      _sendCanFrameCallback = sendCanFrameCallback;
-      _sendReadingCallback  = sendReadingCallback;
+        _logger.LogInformation("AC10HeatingAdapter disposed.");
+        // Beende den Service
     }
 }

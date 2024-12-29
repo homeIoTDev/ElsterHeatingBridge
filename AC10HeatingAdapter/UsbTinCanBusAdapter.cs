@@ -5,15 +5,15 @@ using System.IO.Ports;
 using System.Text;
 
 namespace AC10Service;
-// soll UsbTinCanBusAdapter
-public partial class UsbTinCanBusAdapter: IDisposable
+
+public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
 {
     private readonly ILogger<UsbTinCanBusAdapter>   _logger;
     private readonly UsbTinCanBusAdapterConfig      _config;
     private SerialPort                              _serialPort;
     private System.Timers.Timer                     _openPortTimer;
-    private readonly AC10HeatingAdapter             _ac10HeatingAdapter;
-    private Action<string,string>?                  _sendReadingCallback;
+    private Lazy<IHeatingService>                   _heatingService;
+    private IMqttService                            _mqttService;
     private bool                                    _isCanBusOpen = false;
     private CanAdapterResponse                      _lastCanAdapterResponse;
     private readonly ManualResetEventSlim           _sendLineResetEvent = new ManualResetEventSlim(false);
@@ -21,39 +21,40 @@ public partial class UsbTinCanBusAdapter: IDisposable
 
     public enum CanAdapterResponse { OK, Error, Timeout };
 
-    public UsbTinCanBusAdapter( IOptions<UsbTinCanBusAdapterConfig> config, 
-                                IOptions<AC10HeatingAdapterConfig> heatingAdapterConfig,
+    public UsbTinCanBusAdapter( IOptions<UsbTinCanBusAdapterConfig> config,
+                                Lazy<IHeatingService> heatingService,
+                                IMqttService mqttService,
                                 ILoggerFactory loggerFactory)
     {
         _config         = config.Value;
         _logger         = loggerFactory.CreateLogger<UsbTinCanBusAdapter>();
        
         _logger.LogInformation("UsbTinCanBusAdapter initialized with configuration.");
+        _heatingService = heatingService;
+        _mqttService    = mqttService;
         _openPortTimer  = new System.Timers.Timer(10000);
         _serialPort     = new SerialPort();
         ConfigureSerialPort();
-        _ac10HeatingAdapter = new AC10HeatingAdapter(heatingAdapterConfig.Value, loggerFactory.CreateLogger<AC10HeatingAdapter>());
 
     }
 
     public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx)
     {
-       bool ret= _ac10HeatingAdapter.RequestElsterValue(senderCanId, receiverCanId, elster_idx);
+       bool ret= _heatingService.Value.RequestElsterValue(senderCanId, receiverCanId, elster_idx);
        _logger.LogInformation($"RequestElsterValue: {senderCanId} {receiverCanId} {elster_idx}  => {ret}");
        return ret;
     }
 
-    public void Start(Action<string,string> sendReadingCallback)
+    public void Start()
     {
         _logger.LogInformation(
             $"Starting UsbTinCanBusAdapter for port {_serialPort.PortName} " +
             $"{_serialPort.BaudRate},{_serialPort.DataBits},{_serialPort.Parity},{_serialPort.StopBits}..." );
-        _sendReadingCallback        = sendReadingCallback;
 
         _openPortTimer.Elapsed      += (sender, e) => OpenPort();
         _openPortTimer.AutoReset    = true;
         _openPortTimer.Start();
-        _sendReadingCallback?.Invoke("CAN_Channel", "undefined");        
+        _mqttService.SetReading("CAN_Channel", "undefined");        
     }
 
     public void Stop()
@@ -72,7 +73,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
             {
                 _logger.LogInformation("Serial port {_serialPort.PortName} is already closed.", _serialPort?.PortName);
             }
-            _sendReadingCallback?.Invoke("CAN_Channel", "closed");
+            _mqttService.SetReading("CAN_Channel", "closed");
             _serialPort?.Dispose();
 
         }
@@ -135,15 +136,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
         {
             Task readLinesTask = Task.Run(() => { ReadLinesFromPort();});
             readLinesFromPortStartedSemaphore.Wait();
-            if(_sendReadingCallback!=null)
-            {
-                // Start AC10HeatingAdapter und übergibt die CallBacks
-                _ac10HeatingAdapter.Start(SendCanFrame, _sendReadingCallback);
-            }
-            else
-            {    
-                _logger.LogError($"Could not start USBtinCanBusAdapter because _sendReadingCallback is null.");
-            }
+
             Start_CANBusInit(); 
         }
     }
@@ -157,14 +150,14 @@ public partial class UsbTinCanBusAdapter: IDisposable
         _logger.LogInformation("Resetting UsbTinCanBusAdapter.");
         try { _serialPort?.Close(); } catch { }  // Close serial port in case of error
         _isCanBusOpen = false;
-        _sendReadingCallback?.Invoke("CAN_Channel", "undefined");
+        _mqttService.SetReading("CAN_Channel", "undefined");
     }
 
 
     private void Start_CANBusInit()
     {
         _logger.LogInformation("Starting CANBusInit...");
-        _sendReadingCallback?.Invoke("CAN_Channel", "config mode");
+        _mqttService.SetReading("CAN_Channel", "config mode");
         SendLine(""); // clear CanAdapter-buffer. 2x
         SendLine(""); 
         SendLine("C"); // close CAN-Bus channel, if open.
@@ -182,7 +175,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
         if(SendLine("O")==CanAdapterResponse.OK) // open CAN-Bus channel
         {
             _isCanBusOpen = true;
-            _sendReadingCallback?.Invoke("CAN_Channel", "opened"); 
+            _mqttService.SetReading("CAN_Channel", "opened"); 
             SendLine("F"); // get Error state
         }
         else
@@ -292,8 +285,8 @@ public partial class UsbTinCanBusAdapter: IDisposable
                     if ( line[0] == 'V')  // old version of usbtin use Vxx und vyy in two lines
                     {
                         SetCanAdapterResponse(CanAdapterResponse.OK);
-                        _sendReadingCallback?.Invoke("HW_Version", line.Substring(1,2));
-                        _sendReadingCallback?.Invoke("SW_Version", line.Substring(3,2));
+                        _mqttService.SetReading("HW_Version", line.Substring(1,2));
+                        _mqttService.SetReading("SW_Version", line.Substring(3,2));
                     }
                 }
                 else if(line.Length>0)
@@ -310,7 +303,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
                 _logger.LogDebug($"Rx serial port: '{lineForLogging}' length: {line.Length}");
                 if (canFrame != null)
                 {
-                    _ac10HeatingAdapter.ProcessCanFrame(canFrame);
+                    _heatingService.Value.ProcessCanFrame(canFrame);
                 }
             } // while(_serialPort.IsOpen)
             _logger.LogInformation($"Reading from serial port {_config.PortName} stopped, serial port is closed.");
@@ -379,8 +372,8 @@ public partial class UsbTinCanBusAdapter: IDisposable
 
         // Write all error texts separated by | into the reading CAN_Fehler_Text
         errorTextString = string.Join("|", errorTextArray);
-        _sendReadingCallback?.Invoke("CAN_Error_Text", errorTextString);
-        _sendReadingCallback?.Invoke("CAN_Error", hexCodeString);
+        _mqttService.SetReading("CAN_Error_Text", errorTextString);
+        _mqttService.SetReading("CAN_Error", hexCodeString);
         _logger.LogDebug($"CAN Error: {errorTextString} ({errorCode})");
     }
 
@@ -412,7 +405,7 @@ public partial class UsbTinCanBusAdapter: IDisposable
     }
     public void Dispose()
     {
-        _logger.LogInformation("AC10HeatingAdapter disposed.");
+        _logger.LogInformation("UsbTinCanBusAdapter disposed.");
         // Beende den Service
     }
 }

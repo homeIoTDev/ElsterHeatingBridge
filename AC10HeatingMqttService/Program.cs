@@ -81,8 +81,10 @@ class Program
                 services.AddSingleton<UsbTinCanBusAdapter>();
                 services.AddSingleton<AC10HeatingAdapter>();
                 services.AddSingleton<IMqttService>(provider => provider.GetRequiredService<AC10MqttAdapter>());
-                services.AddSingleton<ICanBusService>(provider => provider.GetRequiredService<UsbTinCanBusAdapter>());  
-                services.AddSingleton(provider => new Lazy<IHeatingService>(provider.GetRequiredService<AC10HeatingAdapter>));
+                services.AddSingleton<ICanBusService>(provider => provider.GetRequiredService<UsbTinCanBusAdapter>()); 
+                services.AddSingleton<IHeatingService>(provider => provider.GetRequiredService<AC10HeatingAdapter>()); 
+                services.AddSingleton(provider => new Lazy<IHeatingService>(provider.GetRequiredService<AC10HeatingAdapter>)); 
+                services.AddSingleton(provider => new Lazy<AC10HeatingAdapter>(provider.GetRequiredService<AC10HeatingAdapter>));
                 services.AddSingleton(provider => new Lazy<UsbTinCanBusAdapter>(provider.GetRequiredService<UsbTinCanBusAdapter>));
                 services.AddSingleton(provider => new Lazy<AC10MqttAdapter>(provider.GetRequiredService<AC10MqttAdapter>));                              
                 services.AddHostedService<AC10HeatingMqttService>();

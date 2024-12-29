@@ -12,15 +12,18 @@ public class AC10HeatingMqttService: IHostedService
     private readonly ILogger<AC10HeatingMqttService>    _logger;
     private readonly Lazy<UsbTinCanBusAdapter>          _usbTinCanBusAdapter;
     private readonly Lazy<AC10MqttAdapter>              _ac10MqttAdapter;
+    private readonly Lazy<AC10HeatingAdapter>           _heatingAdapter;
     private readonly CancellationTokenSource            _cts = new CancellationTokenSource();
 
     public AC10HeatingMqttService(  ILogger<AC10HeatingMqttService> logger,
                                     Lazy<UsbTinCanBusAdapter> usbTinCanBusAdapter,
-                                    Lazy<AC10MqttAdapter> ac10MqttAdapter)
+                                    Lazy<AC10MqttAdapter> ac10MqttAdapter,
+                                    Lazy<AC10HeatingAdapter> heatingAdapter)
     {
         _logger                 = logger;
         _usbTinCanBusAdapter    = usbTinCanBusAdapter;
         _ac10MqttAdapter        = ac10MqttAdapter;
+        _heatingAdapter         = heatingAdapter;
         _logger.LogInformation("IsSystemd: {isSystemd}", SystemdHelpers.IsSystemdService());
     }
         
@@ -90,8 +93,8 @@ public class AC10HeatingMqttService: IHostedService
                 }
                 else if(key == ConsoleKey.S)
                 {   //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
-                    _usbTinCanBusAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
-                    _usbTinCanBusAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                    _heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
+                    _heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x019a);
                 }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 

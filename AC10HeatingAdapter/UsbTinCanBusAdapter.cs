@@ -38,12 +38,6 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
 
     }
 
-    public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx)
-    {
-       bool ret= _heatingService.Value.RequestElsterValue(senderCanId, receiverCanId, elster_idx);
-       _logger.LogInformation($"RequestElsterValue: {senderCanId} {receiverCanId} {elster_idx}  => {ret}");
-       return ret;
-    }
 
     public void Start()
     {

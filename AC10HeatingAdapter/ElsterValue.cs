@@ -254,7 +254,7 @@ public class ElsterValue
         switch (_elsterValueType)
         {
             case ElsterValueType.et_default:
-                retString.Append(elsterValue.ToString());
+                retString.AppendFormat("{0} (0x{0:X4})", elsterValue);
                 break;
             case ElsterValueType.et_dec_val:
                 retString.AppendFormat("{0:F1}", ((double)elsterValue) / 10.0);

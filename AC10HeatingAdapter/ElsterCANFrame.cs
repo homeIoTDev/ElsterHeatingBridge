@@ -54,9 +54,9 @@ namespace AC10Service;
 /// </summary>
 public class ElsterCANFrame
 {
-    private string _toStringString  = "";   // Cache für ToString(), wird in ValidateAndGenerateToString() gesetzt
-    private ushort _elsterIndex     = 0xfa; // Das Member ElsterIndex, das mit  0xfa fehlerhaft ist, wird in ValidateAndGenerateToString() gesetzt.
-   
+    private string  _toStringString = "";   // Cache für ToString(), wird in ValidateAndGenerateToString() gesetzt
+    private ushort  _elsterIndex    = 0xfa; // Das Member ElsterIndex, das mit  0xfa fehlerhaft ist, wird in ValidateAndGenerateToString() gesetzt.
+    ElsterValue?    _elterValue     = null; // Cache für Value, wird in ValidateAndGenerateToString() gesetzt
 
     /// <summary>
     /// Initialisiert eine neue Instanz der <see cref="ElsterCANFrame"/> Klasse.
@@ -154,6 +154,11 @@ public class ElsterCANFrame
                 Initialize(); // Update all properties 
             } 
      }
+
+    /// <summary>
+    /// Der Elster-Wert des Telegramms. Nur gültig, wenn IsValidTelegram true
+    /// </summary>
+    public ElsterValue? Value { get { return _elterValue; } }
 
     /// <summary>
     /// Erstellt eine neue Instanz der <see cref="ElsterCANFrame"/> Klasse aus einem CAN-Bus-Frame.
@@ -401,7 +406,7 @@ public class ElsterCANFrame
         if (elsterValue ==-1)
             return "";
         ElsterValue value = new ElsterValue((ushort)elsterValue, elsterType);
-        return value.GetValueString();    
+        return value.ToString();    
     }
 
     /// <summary>
@@ -438,22 +443,24 @@ public class ElsterCANFrame
 
         //Letzte Prüfung, ob es überhaupt gültige CAN-Ids für Sender oder Empfänger gesetzt sind
         IsValidTelegram = (SenderCanId> 0x7ff) || (ReceiverCanId > 0x7ff) || this.TelegramType == ElsterTelegramType.Unknown? false : true;
+        int shortValue = GetValue();
         int ind = KElsterTable.ElsterTabIndex[ElsterIndex];
         if (ind < 0)
         {
             string allPossibleInterpretableValues="";
-            int shortValue = GetValue();
              if (shortValue != -1)
              {
-                ElsterValue value = new ElsterValue((ushort)shortValue, ElsterValueType.et_default);
-                allPossibleInterpretableValues = value.GetAllPossibleInterpretableValues();
+                ElsterValue tempElsterValue = new ElsterValue((ushort)shortValue, ElsterValueType.et_default);
+                allPossibleInterpretableValues = tempElsterValue.GetAllPossibleInterpretableValues();
              }
+             _elterValue = null;
             _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {ElsterIndex:X4}, with possible data: '{GetValue()} - ({allPossibleInterpretableValues})' {DataArrayToString()}";
             return;
         }
 
         IsKnownElsterIndex      = true;
         var elsterEntry         = KElsterTable.ElsterTable[ind];
+        _elterValue             = new ElsterValue((ushort)shortValue, elsterEntry.Type);
         string elsterValueString= GetValueString(); 
         //If this is a request, then the value is always 0 and also unimportant, as it is being requested
         if(TelegramType == ElsterTelegramType.Read) {

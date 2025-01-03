@@ -246,7 +246,7 @@ public class ElsterValue
     /// Gibt den Wert des ElsterValues als String zurück und gibt bei unbekannten oder ungültigen Werten 
     /// auch die Rohdaten zurück
     /// </summary>
-    public string GetValueString()
+    public override string ToString()
     {
         StringBuilder retString = new StringBuilder();
         short elsterValue = BitConverter.ToInt16(_valueByteArray);

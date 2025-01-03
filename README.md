@@ -63,7 +63,7 @@ angeschaut werden.
 
 - [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
 - [ ] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
-- [ ] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
+- [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
 - [x] Zeitstempel beim Protokollieren
 - [ ] Implementieren eines Bus-Scans pro Module / aller Module 
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805

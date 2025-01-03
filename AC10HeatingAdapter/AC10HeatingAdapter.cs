@@ -72,8 +72,8 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         {
           //TODO: Wäre nett, wenn ich ElsterValue direkt von ElsterCanFrame bekomme
           //TODO: Double und Trible-Werte auslsen
-         // ElsterValue responseValue = new ElsterValue(responseFrame.);
-          _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {responseFrame?.ToString()}");
+         
+          _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {responseFrame?.Value?.ToString()}");
           return true;
         }
         else

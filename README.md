@@ -65,8 +65,13 @@ angeschaut werden.
 - [ ] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
 - [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
 - [x] Zeitstempel beim Protokollieren
-- [ ] Implementieren eines Bus-Scans pro Module / aller Module 
+- [ ] Implementieren eines Bus-Scans pro Module / aller Module
+- [ ] Implementieren von einer Konfigurationsmöglichkeit, die Readingname, SenderCanID, Funktion oder ElsterValue und Abfragezyklus übernimmt. Implementation genauer dieser zyklischen Abfragefunktion. Funktion sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
+- [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
+- [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
+- [ ] Zu prüfen: Werden alle 300 - 500 ms F gesendet um auf Fehler zu prüfen--> Sollte unabhängig vom Bell-Error ermittelt werden.
+- [ ] WP_DHC_Stufe implementieren (Relais)
 - [ ] Implementieren der FEK-Funktionen: Setzen der Heizkurve, Raumeinfluss und Heizkuvenfußpunkt(vermutlich unmöglich)
 - [ ] Implementieren der WPM-Funktionen: Auslesen der Temperaturen, Umschaltung auf Sommerbetrieb
 - [ ] Implementieren der Konfigurationen für MQTT-Ausleitung und zyklisches Abfragen von bestimmten Werten

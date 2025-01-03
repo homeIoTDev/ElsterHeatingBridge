@@ -56,8 +56,34 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         }
     }
 
+ private bool RequestMultiValueTelegram(ElsterCANFrame sendFrame, ref ElsterValue elsterValue)
+    {
+        if (elsterValue.ValueType != ElsterValueType.et_double_val && 
+            elsterValue.ValueType != ElsterValueType.et_triple_val)
+            return false;
+        //Copy erstellen, wir wolle nicht das orginal verändern
+        ElsterCANFrame sendElsterFrame2 = new ElsterCANFrame(sendFrame);
 
-    public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx)
+        for(int i=0; i < (elsterValue.ValueType == ElsterValueType.et_double_val?1:2); i++)
+        {
+          sendElsterFrame2.ElsterIndex  = (ushort)(sendElsterFrame2.ElsterIndex - 1);
+          ElsterCANFrame? responseFrame = null;
+          //Thread.Sleep(100);  // 100ms warten, aber warum?
+          if(!TrySendElsterCanFrame(sendElsterFrame2, out responseFrame, true))
+            return false;
+
+          if(responseFrame?.Value == null)  
+            return false;
+          
+          elsterValue.SetNextMultiValue(responseFrame.Value);
+        }
+        return true;
+        // HeatingModule ->Respond on ExternalDevice WAERMEERTRAG_HEIZ_TAG_KWH et_double_val:32
+        // HeatingModule ->Respond on ExternalDevice WAERMEERTRAG_HEIZ_TAG_WH 635 (0x027B)
+        // RequestElsterValue: ExternalDevice ->Read on HeatingModule WAERMEERTRAG_HEIZ_TAG_KWH  => et_double_val:32
+    }
+
+    public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx, out ElsterValue? returnElsterValue)
     {
       if(senderCanId > 0x7FF) senderCanId = _heatingAdapterConfig.StandardSenderCanID;
       ElsterCANFrame  sendElsterFrame = new ElsterCANFrame(
@@ -70,15 +96,39 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         ElsterCANFrame? responseFrame;
         if( TrySendElsterCanFrame(sendElsterFrame, out responseFrame, true) == true)
         {
-          //TODO: Wäre nett, wenn ich ElsterValue direkt von ElsterCanFrame bekomme
-          //TODO: Double und Trible-Werte auslsen
-         
-          _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {responseFrame?.Value?.ToString()}");
+          if(responseFrame?.Value != null)
+          {
+            returnElsterValue = responseFrame.Value;
+            if( responseFrame.Value.ValueType == ElsterValueType.et_double_val || 
+                responseFrame.Value.ValueType == ElsterValueType.et_triple_val)
+            {
+                  if (responseFrame.Value.IsElsterNullValue() == false)
+                  {
+                    ElsterValue tempElsterValue = responseFrame.Value;
+                    bool ret = RequestMultiValueTelegram(sendElsterFrame, ref tempElsterValue);
+                    // Wenn ein Problem bei den Folgetelgrammen auftritt, dann ist der returnElsterValue falsch;
+                    if(ret == false){
+                      _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Error in reading or sending of multi value response telegram");
+                      return false;
+                    } 
+                    returnElsterValue = tempElsterValue;
+                  }
+            }
+          }
+          else
+          {
+            returnElsterValue = null;
+            _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Response frame is null or value is null");
+            return false;
+          }
+          // Ein Wert (bzw. mehrer Telegramme) wurden erfolgreich mit einem ElsterValue gelesen
+         _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {returnElsterValue.ToString()}");
           return true;
         }
         else
         {
           _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => No response");
+          returnElsterValue = null;
           return false;
         }
 
@@ -249,7 +299,6 @@ bool KCanElster::Send(unsigned count, bool WaitForAnswer, int inner_delay)
   return false;
 }
 */
-
     public void Dispose()
     {
         _logger.LogInformation("AC10HeatingAdapter disposed.");

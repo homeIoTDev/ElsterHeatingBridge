@@ -6,10 +6,14 @@ namespace AC10Service;
 
 public class ElsterValue
 {
-    public const ushort     ELSTER_NULL_VALUE = 0x8000;
+    private const ushort     ELSTER_NULL_VALUE = 0x8000;
     private byte[]          _valueByteArray;
     private ElsterValueType _elsterValueType;
 
+    /// <summary>
+    /// Die Elster-Wertetyp, die angibt, wie das Byte-Array interpretiert werden soll.
+    /// </summary>
+    public ElsterValueType ValueType { get => _elsterValueType; }
 
     /// <summary>
     /// Initialisiert eine neue Instanz von <see cref="ElsterValue"/> mit einem short-Wert und einem Elster-Wertetyp.
@@ -26,17 +30,38 @@ public class ElsterValue
     }
 
     /// <summary>
-    /// Initialisiert eine neue Instanz von <see cref="ElsterValue"/> mit einem Byte-Array und einem Elster-Wertetyp.
+    /// Fügt einen weiteren Elster-Wert zu einem bestehenden Multi-Wert hinzu. Wenn ein 
+    /// Elster-Wert aus mehreren Telegrammen zusammengesetzt wird, wird mit dieser Methode entsprechend
+    /// immer zwei Bytes an das internen Byte-Array angefügt.
     /// </summary>
-    /// <param name="valueByteArray">Das Byte-Array, das den zu speichernden Wert enthält. Muss 2,4 oder 6 Bytes lang sein.</param>
-    /// <param name="elsterValueType">Der Elster-Wertetyp, der angibt, wie das Byte-Array interpretiert werden soll.</param>
-    /// <exception cref="ArgumentException">Wird ausgelöst, wenn das Byte-Array eine ungültige Länge hat.</exception>
-    public ElsterValue(byte[] valueByteArray, ElsterValueType elsterValueType)
+    /// <param name="nextValue">Der nächste Elster-Wert, der hinzugefügt werden soll.</param>
+    /// <returns>
+    /// True, wenn der nächste Wert erfolgreich hinzugefügt wurde, andernfalls false. 
+    /// Der nächste Wert wird nur hinzugefügt, wenn der aktuelle Werttyp 
+    /// <see cref="ElsterValueType.et_double_val"/> oder <see cref="ElsterValueType.et_triple_val"/> ist,
+    /// der nächste Wert 2 Bytes lang ist und die aktuelle Länge des Wertes im zulässigen Bereich liegt.
+    /// </returns>
+    public bool SetNextMultiValue(ElsterValue nextValue)
     {
-        if( valueByteArray.Length != 2 && valueByteArray.Length != 4 && valueByteArray.Length != 6)
-            throw new ArgumentException("valueByteArray has to be 2, 4 or 6 bytes long");
-        _valueByteArray     = valueByteArray;
-        _elsterValueType    = elsterValueType;
+        // Only accept double or triple values
+        if (_elsterValueType != ElsterValueType.et_double_val && 
+            _elsterValueType != ElsterValueType.et_triple_val)
+            return false;
+            
+        // Next value must be 2 bytes
+        if (nextValue._valueByteArray.Length != 2)
+            return false;
+            
+        // First value must be 2 bytes for double_val, or 2/4 bytes for triple_val
+        bool validLength = _elsterValueType == ElsterValueType.et_double_val ? 
+            _valueByteArray.Length == 2 :
+            (_valueByteArray.Length == 2 || _valueByteArray.Length == 4);
+            
+        if (!validLength)
+            return false;
+            
+        _valueByteArray = _valueByteArray.Concat(nextValue._valueByteArray).ToArray();
+        return true;
     }
 
     /// <summary>
@@ -121,6 +146,12 @@ public class ElsterValue
         }
     }
    
+   /// <summary>
+   /// Gibt zurueck, ob der Wert Elster-Null (0x8000) ist. Ist der Wer
+   /// </summary>
+   /// <returns></returns>
+   public bool IsElsterNullValue() => (ushort)(GetShortValue() ?? 0) == ELSTER_NULL_VALUE;
+
     /// <summary>
     /// Gibt den short-Wert des ElsterValues zurück (et_default).
     /// </summary>
@@ -299,10 +330,12 @@ public class ElsterValue
                 }
                 break;
             case ElsterValueType.et_double_val:
-                retString.Append($"et_double_val:{elsterValue}");
+                double? retDoubleValue = GetDoubleValue();
+                retString.Append(retDoubleValue == null ? $"et_double_val:{elsterValue}" : $"{retDoubleValue}");
                 break;
             case ElsterValueType.et_triple_val:
-                retString.Append($"et_triple_val:{elsterValue}");
+                double? retTripleValue = GetTripleValue();
+                retString.Append(retTripleValue == null ? $"et_triple_val:{elsterValue}" : $"{retTripleValue}");
                 break;
             case ElsterValueType.et_little_endian:
                 retString.Append(((elsterValue >> 8) + 256*(elsterValue & 0xff)).ToString());

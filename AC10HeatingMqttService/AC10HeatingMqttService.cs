@@ -92,9 +92,11 @@ public class AC10HeatingMqttService: IHostedService
                     _usbTinCanBusAdapter.Value.Reset();
                 }
                 else if(key == ConsoleKey.S)
-                {   //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
-                    _heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x0199);
-                    _heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x019a);
+                {   // Tages Ertrag in kwh abfragen an HeatingModule 
+                    ElsterValue? elsterValue;
+                    _heatingAdapter.Value.RequestElsterValue(0xFFFF, 0x0500, 0x092f, out elsterValue);
+                    //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
+                    //_heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x019a, out elsterValue);
                 }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 

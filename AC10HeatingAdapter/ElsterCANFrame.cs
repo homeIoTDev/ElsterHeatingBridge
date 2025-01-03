@@ -58,6 +58,19 @@ public class ElsterCANFrame
     private ushort  _elsterIndex    = 0xfa; // Das Member ElsterIndex, das mit  0xfa fehlerhaft ist, wird in ValidateAndGenerateToString() gesetzt.
     ElsterValue?    _elterValue     = null; // Cache für Value, wird in ValidateAndGenerateToString() gesetzt
 
+
+    /// <summary>
+    /// Copy-Konstruktor: Erstellt eine neue Instanz der 
+    /// <see cref="ElsterCANFrame"/> Klasse aus einer bestehenden Instanz.
+    /// </summary>
+    /// <param name="existingFrame">Die bestehende Instanz der <see cref="ElsterCANFrame"/> Klasse.</param>
+    public ElsterCANFrame(ElsterCANFrame existingFrame)
+    {
+        this.SenderCanId    = existingFrame.SenderCanId;
+        Data                = (byte[])existingFrame.Data.Clone();
+        Initialize();
+    }
+
     /// <summary>
     /// Initialisiert eine neue Instanz der <see cref="ElsterCANFrame"/> Klasse.
     /// Nimmt die Sender-CAN-ID und das Datenarray aus einem CAN-Bus-Frame und validiert es.

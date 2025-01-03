@@ -81,5 +81,6 @@ Schlussfolgerung: Zunächst muss das Abfragen und Beschreiben des Busses umgeset
 
 ## Untersuchungen 30.12.24 - Neustart der Steuerung (stromlos)
 Eigentlich sollte die Heizung auf der FEK in den Ferienbetrieb wechseln, tut sie aber nicht. Test, ob sie nach Neustart tut. Dabei wurde der Neustart aufgezeichnet.
-Ergebnis: Nö -> Das Koffersymbol fehlt in der Anzeige der FEK
+
+Ergebnis: Die Heizung wechselt nicht in den Ferienbetrieb. Das Koffersymbol fehlt in der Anzeige der FEK. Es ist nicht ausgeschlossen, dass es sich um einen Bug der Tecalor TTL 10 AC handelt. Auch in den Ferientagen hat sich der Ferienbetrieb nicht eingeschaltet. Es könnte auch sein, dass die FEK die Einstellungen am WPM ignoriert, da sie die Steuerung der Heizung übernimmt.
 [20241230_NeustartWPM.log](audit/20241230_NeustartWPM.log)

@@ -62,7 +62,7 @@ angeschaut werden.
 ----------------
 
 - [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
-- [ ] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
+- [x] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
 - [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
 - [x] Zeitstempel beim Protokollieren
 - [ ] Implementieren eines Bus-Scans pro Module / aller Module

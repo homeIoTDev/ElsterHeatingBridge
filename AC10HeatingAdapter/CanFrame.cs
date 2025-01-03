@@ -2,8 +2,9 @@ namespace AC10Service;
 
 public abstract class CanFrame
 {
-    public uint SenderCanId { get; set; }
-    public byte[] Data { get; set; }
+    public uint SenderCanId { get; private set; }
+    public byte[] Data { get; private set; }
+    public DateTime CreatedAt { get; } = DateTime.Now;
 
     public CanFrame(uint senderCanId, byte[] data)
     {

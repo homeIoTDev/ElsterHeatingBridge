@@ -31,7 +31,7 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
 //Todo: sollte keine Excpeption werfen!
     public void ProcessCanFrame(CanFrame frame)
     {
-        _logger.LogDebug($"Received frame {frame.ToString()}"); 
+        _logger.LogDebug($"{frame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} -> {frame.ToString()}"); 
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
         
         if(_storeResponseFramesInQueue)
@@ -146,6 +146,7 @@ bool KCanElster::GetDoubleValue(unsigned short first_val,
         {
           // Das ElsterCANFrame zu einem CAN-Bus-Frame konvertieren
           StandardCanFrame sendCanFrame = sendElsterCanFrame.ToCanFrame();
+          _logger.LogDebug($"{sendCanFrame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} <- {sendCanFrame.ToString()}"); 
 
           for (int tryCount = 1; tryCount <= _heatingAdapterConfig.SendRetryCount; tryCount++)  // 3 Versuche
           {

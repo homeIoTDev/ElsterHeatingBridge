@@ -92,6 +92,15 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         // RequestElsterValue: ExternalDevice ->Read on HeatingModule WAERMEERTRAG_HEIZ_TAG_KWH  => et_double_val:32
     }
 
+
+    /// <summary>
+    /// Requests an elster value per read telegram. The function tries to add missing values for double- or triple-values.
+    /// </summary>
+    /// <param name="senderCanId">The sender CAN-ID or a value > 0x7FF for the default sender CAN-ID.</param>
+    /// <param name="receiverCanId">The receiver CAN-ID as <see cref="ElsterModule"/>.</param>
+    /// <param name="elster_idx">The elster index of the value to read.</param>
+    /// <param name="returnElsterValue">The requested elster value.</param>
+    /// <returns>true if the telegram was successfully sent and the value(s) were received and correctly interpreted.</returns>
     public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx, out ElsterValue? returnElsterValue)
     {
       if(senderCanId > 0x7FF) senderCanId = _heatingAdapterConfig.StandardSenderCanID;

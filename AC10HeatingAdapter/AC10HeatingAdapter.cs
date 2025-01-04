@@ -56,7 +56,16 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         }
     }
 
- private bool RequestMultiValueTelegram(ElsterCANFrame sendFrame, ref ElsterValue elsterValue)
+    /// <summary>
+    /// Requests multiple telegrams for one elster value. The function assumes that the first
+    /// value has already been received and is in <paramref name="elsterValue"/>.
+    /// It then requests the next elster value(s) with an decreasing elster index
+    /// and adds them to the <paramref name="elsterValue"/>.
+    /// </summary>
+    /// <param name="sendFrame">The frame that was used to request the first value.</param>
+    /// <param name="elsterValue">The Elster value that should be completed with the next value(s).</param>
+    /// <returns>true if all values were successfully requested and added to <paramref name="elsterValue"/>.</returns>
+    private bool RequestMultiValueTelegram(ElsterCANFrame sendFrame, ref ElsterValue elsterValue)
     {
         if (elsterValue.ValueType != ElsterValueType.et_double_val && 
             elsterValue.ValueType != ElsterValueType.et_triple_val)
@@ -93,96 +102,35 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
                                       elster_idx,
                                       0);
 
-        ElsterCANFrame? responseFrame;
-        if( TrySendElsterCanFrame(sendElsterFrame, out responseFrame, true) == true)
+        if( TrySendElsterCanFrame(sendElsterFrame, out ElsterCANFrame? responseFrame, true) == true)
         {
           if(responseFrame?.Value != null)
           {
             returnElsterValue = responseFrame.Value;
-            if( responseFrame.Value.ValueType == ElsterValueType.et_double_val || 
-                responseFrame.Value.ValueType == ElsterValueType.et_triple_val)
+            if( (responseFrame.Value.ValueType == ElsterValueType.et_double_val || 
+                 responseFrame.Value.ValueType == ElsterValueType.et_triple_val) && 
+                responseFrame.Value.IsElsterNullValue() == false)
             {
-                  if (responseFrame.Value.IsElsterNullValue() == false)
-                  {
-                    ElsterValue tempElsterValue = responseFrame.Value;
-                    bool ret = RequestMultiValueTelegram(sendElsterFrame, ref tempElsterValue);
-                    // Wenn ein Problem bei den Folgetelgrammen auftritt, dann ist der returnElsterValue falsch;
-                    if(ret == false){
-                      _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Error in reading or sending of multi value response telegram");
-                      return false;
-                    } 
-                    returnElsterValue = tempElsterValue;
-                  }
+              if(!RequestMultiValueTelegram(sendElsterFrame, ref returnElsterValue))
+              {
+                _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Error in the process of retrieving the remaining values for a composite multi-value via telegram");
+                return false;
+              }
             }
+            _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {returnElsterValue.ToString()}");
+            return true;
           }
           else
           {
-            returnElsterValue = null;
-            _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Response frame is null or value is null");
-            return false;
+            _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => Response frame is null or value is null. Error in the process of retrieving an value via elster read telegram");
           }
-          // Ein Wert (bzw. mehrer Telegramme) wurden erfolgreich mit einem ElsterValue gelesen
-         _logger.LogInformation($"RequestElsterValue: {sendElsterFrame.ToString()} => {returnElsterValue.ToString()}");
-          return true;
         }
         else
         {
           _logger.LogWarning($"RequestElsterValue: {sendElsterFrame.ToString()} => No response");
-          returnElsterValue = null;
-          return false;
         }
-
-
-      /*
-bool KCanElster::GetDoubleValue(unsigned short first_val,
-                                unsigned scan_can_id,
-                                unsigned short elster_idx,
-                                unsigned char elster_type,
-                                double & result)
-{
-  if (first_val == 0x8000)
-    return false;
-
-  if (elster_type != et_double_val &&
-      elster_type != et_triple_val)
-    return false;
-
-  unsigned short sec_val;
-  unsigned short third_val;
-  NUtils::SleepMs(100);
-  if (!GetValue(scan_can_id, elster_idx - 1, sec_val))
-    return false;
-
-  result = (double)(first_val) + (double)(sec_val) / 1000.0;
-
-  if (elster_type == et_triple_val)
-  {
-    NUtils::SleepMs(100);
-    if (!GetValue(scan_can_id, elster_idx - 2, third_val))
-      return false;
-
-    result += (double)(third_val) / 1000000.0;
-  }
-  return true;
-}
-
-
-
-
-      if (Send() && RecvFrame.Len == 7)
-      {
-        int val = -1;
-      
-        val = RecvFrame.GetValue();
-        if (val < 0)
-          return false;
-        
-        Value = (unsigned short) val;
-        
-        return true;
-      }
-      */
-      return false;
+        returnElsterValue = null;
+        return false;
     }
    
     /// <summary>

@@ -201,7 +201,7 @@ public class ElsterValue
     /// Gibt den int-Wert des ElsterValues aus einem Little-Endian-Form zurück.(et_little_endian).
     /// </summary>
     /// <returns>Der int-Wert des ElsterValues oder null wenn der Typ nicht passt.</returns>
-    public int? GetIntValue() => (int?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_little_endian);
+    public int? GetLittleEndianValue() => (int?)ConvertByteArrayToType(_valueByteArray, ElsterValueType.et_little_endian);
     /// <summary>
     /// Gibt den string-Wert des ElsterValues aus der Liste-Betriebsarten wie z.B 'Notbetrieb' zurück (et_betriebsart).
     /// </summary>
@@ -362,15 +362,15 @@ public class ElsterValue
                 break;
             case ElsterValueType.et_err_nr:
                 {
-                int idx = Array.FindIndex(ErrorList, e => e.Index == elsterValue);
+                int idx = Array.FindIndex(ErrorList, e => e.Index == (ushort)elsterValue);
                 if (idx >= 0)
                     retString.Append(ErrorList[idx].Name);
                 else
-                    retString.AppendFormat("ERR {0}", elsterValue);
+                    retString.AppendFormat("ERR {0}", (ushort)elsterValue);
                 }
                 break;
             case ElsterValueType.et_dev_id:
-                retString.AppendFormat("{0}-{1:D2}", (elsterValue >> 8), elsterValue & 0xff);
+                retString.AppendFormat("{0}-{1:D2}", ((ushort)elsterValue)>> 8, (ushort)elsterValue & 0xff);
                 break;
             case ElsterValueType.et_betriebsart:
                 if ((elsterValue & 0xff) == 0 && (elsterValue >> 8) < BetriebsartList.Length)

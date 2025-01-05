@@ -22,11 +22,12 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 ## Quellen
 ----------
 
-Dieses Programm basiert auf der Arbeiten von:
+Dieses Programm basiert auf den Arbeiten von:
 
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)
 * Radiator
+* Robots <https://github.com/robots/Elster/>
 
 
 ## Telegrammaufbau
@@ -36,8 +37,9 @@ Dieses Programm basiert auf der Arbeiten von:
 
 ## Warnung
 ----------
+Die Verwendung des Codes erfolgt auf eigene Gefahr. Es wird keine Gewährleistung für die Richtigkeit oder Vollständigkeit der Software übernommen. Der Autor haftet nicht für Schäden, die durch die Verwendung dieser Software entstehen, insbesondere nicht für Schäden an der Wärmepumpe. Also aufpassen, der nächste Winter wird kommen.
 
-Bitte verwenden Sie die `set`-Funktion nicht, um auf die Pumpe zu schreiben, es sei denn, Sie wissen, was Sie tun. Ein falscher Gebrauch der `set`-Funktion kann die Pumpe beschädigen.
+Use of this code is at your own risk. No warranty is given for the correctness or completeness of the software. The author is not liable for any damages that may arise from the use of this software, particularly not for damages to the heat pump. So be careful, winter is coming.
 
 ## Installation
 -------------
@@ -65,7 +67,7 @@ angeschaut werden.
 - [x] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
 - [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
 - [x] Zeitstempel beim Protokollieren
-- [ ] Implementieren eines Bus-Scans pro Module / aller Module
+- [x] Implementieren eines Bus-Scans pro Module / aller Module
 - [ ] Implementieren von einer Konfigurationsmöglichkeit, die Readingname, SenderCanID, Funktion oder ElsterValue und Abfragezyklus übernimmt. Implementation genauer dieser zyklischen Abfragefunktion. Funktion sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
@@ -89,3 +91,38 @@ Eigentlich sollte die Heizung auf der FEK in den Ferienbetrieb wechseln, tut sie
 
 Ergebnis: Die Heizung wechselt nicht in den Ferienbetrieb. Das Koffersymbol fehlt in der Anzeige der FEK. Es ist nicht ausgeschlossen, dass es sich um einen Bug der Tecalor TTL 10 AC handelt. Auch in den Ferientagen hat sich der Ferienbetrieb nicht eingeschaltet. Es könnte auch sein, dass die FEK die Einstellungen am WPM ignoriert, da sie die Steuerung der Heizung übernimmt.
 [20241230_NeustartWPM.log](audit/20241230_NeustartWPM.log)
+
+## Untersuchung 05.01.25 - Scan der gültigen CAN-IDs
+
+In meiner Anlage gibt es ein Modul mit der CanId = 0x100. Dieses Modul konnte ich bisher in keiner
+Implementierung im Internet finden. Laut dem Display meiner Wärmepumpe handelt es sich um ein FES.
+Auf der Homepage von Stiebel Eltron wird ein FES Komfort als Zubehör angeboten, was darauf hindeutet,
+dass es sich um mein neues Bedienteil mit Touchwheel handelt.
+
+Warum musste ich das FEK für die Kühlung installieren, und warum wurde das FES im Keller montiert
+und nicht in der Wohnung, obwohl das FES auch die Feuchtemessung durchführen kann?
+
+So werden die Busteilnehmer laut WPM3-Display dargestellt:
+| # |Busteilnehmer   |Software   |
+|---|---|---|
+|01.   |WPM3   |390-02   |
+|02.   |FES   |392-03   |
+|03.   |FEK   |195-06   |
+|04.   |WP1   |243-10   |   
+
+
+'''
+	    scan on CAN-id: 700
+      list of valid can id's:
+      
+        000 (C306 = 195-06)
+        100 (8000 = 128-00)
+        180 (8000 = 128-00)
+        301 (C306 = 195-06)
+        302 (8000 = 128-00)
+        480 (8000 = 128-00)
+        500 (4310 = 67-16)
+        601 (8000 = 128-00)
+        602 (8000 = 128-00)
+        680 (8000 = 128-00)
+'''

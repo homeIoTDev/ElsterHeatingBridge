@@ -98,6 +98,10 @@ public class AC10HeatingMqttService: IHostedService
                     //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
                     //_heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x019a, out elsterValue);
                 }
+                else if(key == ConsoleKey.M)
+                { 
+                    _heatingAdapter.Value.ScanElsterModules();
+                }
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 
         }

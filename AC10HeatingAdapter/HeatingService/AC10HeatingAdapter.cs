@@ -57,6 +57,94 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
     }
 
     /// <summary>
+    /// List of valid Elster modules with their Device-ID. The Device-IDs can be used to start communication with the module
+    /// in a configuration mode, similar to how it is done in CS. This list is only filled by <see cref="ScanElsterModules"/>()
+    /// </summary>
+    private static List<(ElsterModule canId, ElsterValue deviceId, ElsterValue? softwareNumber, ElsterValue? softwareVersion )> Modules = 
+    new List<(ElsterModule canId, ElsterValue deviceId, ElsterValue? softwareNumber, ElsterValue? softwareVersion )>();
+
+    public void ScanElsterModules(ushort senderCanId = 0xFFF) 
+    {
+      try {
+        if(senderCanId > 0x7FF) senderCanId = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);
+      }
+      catch {
+        senderCanId = 0x700;
+      }
+      _logger.LogInformation("Scanning for Elster modules...");
+      Modules.Clear();
+      StringBuilder logString = new StringBuilder();
+      logString.AppendLine($"scan on CAN-id: {senderCanId:X3}");
+      logString.AppendLine("list of valid can id's:");
+      logString.AppendLine("");
+      logString.AppendLine("");
+      
+      const int MODULES_PER_GROUP = 0x80; // 128 Geräte pro Gruppe
+      for (int recv = 0; recv < 0x10; recv++) 
+          if (recv != senderCanId / 0x80) // die SenderCanId wird nicht gescannt, das sind wir selbst
+          {
+              int foundDevicesCount = 0;
+              for (int i = 0; i < 0x10; i++) // 0x10 = 16 Geräte vom gleichen Typ (wie z.B. FEK, FEK2 usw.) werden gescannt
+              {
+                ushort curModuleId = (ushort)(MODULES_PER_GROUP * recv + i);
+
+                ElsterValue? softwareNumber       = null;
+                ElsterValue? softwareVersion      = null;
+                ElsterValue? deviceConfiguration2 = null;
+                
+                if (RequestElsterValue(senderCanId, curModuleId, ElsterTabIndexName["GERAETE_ID"], out ElsterValue? deviceId))
+                {
+                  if (deviceId?.IsElsterNullValue()==true)
+                  {
+                      _= RequestElsterValue(senderCanId, curModuleId, ElsterTabIndexName["SOFTWARE_NUMMER"], out softwareNumber);
+                      _= RequestElsterValue(senderCanId, curModuleId, ElsterTabIndexName["SOFTWARE_VERSION"], out softwareVersion);
+                      if( curModuleId == (int)ElsterModule.Direct)
+                      {
+                         _= RequestElsterValue(senderCanId, curModuleId, ElsterTabIndexName["GERAETEKONFIGURATION_2"], out deviceConfiguration2);
+                      }
+                  }
+                  foundDevicesCount++;
+
+                  Modules.Add(((ElsterModule)curModuleId, deviceId!, softwareNumber, softwareVersion));
+
+                  logString.AppendFormat("  {0:X3} ({1:X4} = ", 0x80*recv + i, deviceId?.GetShortValue());
+
+                  if (softwareVersion?.IsElsterNullValue() == false)
+                    logString.AppendFormat("{0}-{1:D2})\n", (softwareNumber?.GetValue()), softwareVersion?.GetShortValue() & 0xff);
+                  else
+                  {
+                    //Only valid for Direct module
+                    if( deviceConfiguration2?.IsElsterNullValue() == false)
+                    {
+                      ushort? swNumber = (ushort?)deviceConfiguration2?.GetLittleEndianValue();
+                      logString.AppendFormat("{0}-{1:D2})\n", swNumber>> 8, swNumber & 0xff);
+                    }
+                    else // 
+                    {
+                      logString.Append(deviceId?.ToString()+")\n");
+                    }
+                  }
+                }
+                if (foundDevicesCount < i-2) // abbrechen, wenn die Anzahl der gefundenen Geräte 
+                  break;
+              }
+          }
+          _logger.LogInformation(logString.ToString());
+          _logger.LogInformation("Scanning for Elster modules finished");
+          foreach(var module in Modules)
+          {
+            _logger.LogInformation(
+                   $"Found Elster module: {module.canId.ToString().PadLeft(15)} " +
+                   $"({((ushort)module.canId).ToString("X3").PadRight(3)}) = " +
+                   $"Device-ID: {module.deviceId.GetShortValue(),6:X4} | " + 
+                   $"SW-Nr: {(module.softwareNumber?.IsElsterNullValue() == false ? module.softwareNumber.GetShortValue()?.ToString().PadRight(6) : "N/A".PadRight(6))} | " +
+                   $"SW-Ver: {(module.softwareVersion?.IsElsterNullValue() == false ? 
+                      $"{(ushort?)module.softwareVersion.GetShortValue()}".PadRight(6) 
+                      : "N/A".PadRight(6))}");
+          }
+    }
+
+    /// <summary>
     /// Requests multiple telegrams for one elster value. The function assumes that the first
     /// value has already been received and is in <paramref name="elsterValue"/>.
     /// It then requests the next elster value(s) with an decreasing elster index
@@ -92,7 +180,6 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         // RequestElsterValue: ExternalDevice ->Read on HeatingModule WAERMEERTRAG_HEIZ_TAG_KWH  => et_double_val:32
     }
 
-
     /// <summary>
     /// Requests an elster value per read telegram. The function tries to add missing values for double- or triple-values.
     /// </summary>
@@ -103,7 +190,13 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
     /// <returns>true if the telegram was successfully sent and the value(s) were received and correctly interpreted.</returns>
     public bool RequestElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx, out ElsterValue? returnElsterValue)
     {
-      if(senderCanId > 0x7FF) senderCanId = _heatingAdapterConfig.StandardSenderCanID;
+      try {
+        if(senderCanId > 0x7FF) senderCanId = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);
+      }
+      catch {
+        senderCanId = 0x700;
+      }
+
       ElsterCANFrame  sendElsterFrame = new ElsterCANFrame(
                                       senderCanId,
                                       (ElsterModule)receiverCanId,
@@ -207,55 +300,7 @@ public class AC10HeatingAdapter : IDisposable, IHeatingService
         responseFrame = null;
         return false;
     }
-/*
-bool KCanElster::Send(unsigned count, bool WaitForAnswer, int inner_delay)
-{
-  EmptyServer();
 
-  for (int i = 0; (unsigned) i < count; i++)  // 3 Versuche
-  {
-    int wait_delay = 1000; // zwischen 2 Versuchen
-
-    if (Send_Frame())
-    {
-      if (!WaitForAnswer)
-        return true;
-
-      int del = count > 1 ? 400 : inner_delay;
-      for (int k = 0; k < del; k++)
-      {
-        while (Get_Frame())
-        {
-          bool Ok = false;
-
-          if (RecvFrame.Id == SendFrame.Id) // Echo
-            continue;
- 
-          if (DriverType == NCanUtils::dt_cs)
-          {             
-            Ok = RecvFrame.Len > 0;
-          } else
-          if (RecvFrame.IsAnswerToElsterIndex(SendFrame))
-            Ok = true;
-        #if !defined(__UVR__)
-          if (Ok)
-            SniffedData.ClearSniffedValue(RecvFrame);
-          else
-            continue;
-        #endif
-          return Ok;
-        }
-        NUtils::SleepMs(1);
-        wait_delay--;
-      }
-    }
-    if ((unsigned)(i+1) < count && wait_delay > 0)
-      NUtils::SleepMs(wait_delay);
-  }
-
-  return false;
-}
-*/
     public void Dispose()
     {
         _logger.LogInformation("AC10HeatingAdapter disposed.");

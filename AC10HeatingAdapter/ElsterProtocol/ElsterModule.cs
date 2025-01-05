@@ -3,7 +3,8 @@ using System;
 namespace AC10Service;
 
 /// <summary>
-/// CAN-IDs der Elster-Systeme.
+/// Bekannte CAN-IDs in den Elster-Systemen. Ja nach System können auch mehrere Module gleichen Typs 
+/// mit unterschiedlichen CAN-IDs verwendet werden (z.B. RemoteControl und RemoteControl2).
 /// </summary>
 /// <remarks>
 /// https://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/code-schnipsel/26505-anbindung-tecalor-ttw13?p=634595#post634595
@@ -11,21 +12,25 @@ namespace AC10Service;
 public enum ElsterModule
 {
     /// <summary>
-    /// CAN-ID 0x000 - Direct (Was ist direct? Für alle Module?)
+    /// CAN-ID 0x000 - Direct.
     /// </summary>
+    /// <remarks>
+    /// Queries with short Elster telegrams should not be performed on this module (currently only long telegrams are supported anyway).
+    /// The central error list can be queried here.
+    /// </remarks>
     Direct = 0x000,
     /// <summary>
-    /// CAN-ID 0x0079 - Direct broadcast (dont know what this is or if it is used)
+    /// CAN-ID 0x0100 - FES Comfort module 
     /// </summary>
-    Direct_Broadcast = 0x079,
+    /// <remarks>
+    /// This module is directly located at the WPM3. If the placement is also the same as the living space (e.g. not in an unheated basement),
+    /// then possibly no extra FEK is required.
+    /// </remarks>
+    FES_COMFORT = 0x100,
     /// <summary>
-    /// CAN-ID 0x0100 - Unknown module in Tecalor WPL 10 AC mit FEK, Puffer, WPM3
+    /// CAN-ID 0x0179 - FES Comfort module broadcast
     /// </summary>
-    Unknown_100h = 0x100,
-    /// <summary>
-    /// CAN-ID 0x0179 - Unknown module broadcast in Tecalor WPL 10 AC mit FEK, Puffer, WPM3
-    /// </summary>
-    Unknown_100h_Broadcast = 0x0179,
+    FES_COMFORT_Broadcast = 0x0179,
     /// <summary>
     /// CAN-ID 0x0180 - Boiler module
     /// </summary>
@@ -37,6 +42,9 @@ public enum ElsterModule
     /// <summary>
     /// CAN-ID 0x0280 - Atez module
     /// </summary>
+    /// <remarks>
+    /// Ich vermute hier das zusätzliche Heizmodule für den Warmwasser-Boilder, was bei Solarzellen sinnvoll sein kann
+    /// </remarks>
     AtezModule = 0x280,
     /// <summary>
     /// CAN-ID 0x2F9 - Atez module broadcast

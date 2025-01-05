@@ -4,7 +4,7 @@ namespace AC10Service;
 
 public partial class KElsterTable
 {
-
+ 
     public static (string Name, ushort Index, ElsterValueType Type)[] ElsterTable =
     {
         //  Name                                             Index   Type
@@ -3587,6 +3587,8 @@ public partial class KElsterTable
         ( "ANZEIGESTATUS"                                    , 0xfda9, 0),
         ( "BUSKONTROLLE"                                     , 0xfdaa, 0),
         ( "ZWEITER_WE_STATUS"                                , 0xfdab, ElsterValueType.et_little_endian),
+        // ID = 480
+        // EVU Freigabe:         0x0100     
         ( "WP_EVU"                                           , 0xfdac, ElsterValueType.et_little_endian),
         ( "WP_PUMPENSTATUS"                                  , 0xfdad, ElsterValueType.et_little_endian),
         ( "WP_STATUS"                                        , 0xfdae, ElsterValueType.et_little_endian),
@@ -3607,9 +3609,7 @@ public partial class KElsterTable
         //  ( "WW_LERNEN"                                        , 0xfdb9, ElsterType.et_little_endian),
         // Warmwasser / WW Automatik  aus 0x0000   ein 0x0100
         ( "AUTOMATIK_WARMWASSER"                             , 0xfdb9, ElsterValueType.et_little_bool),
-        // ID = 480
-        // EVU Freigabe:         0x0100
-        ( "ZWEITER_WE_STATUS"                                , 0xfdba, 0),
+        // Den gibt es zweimal...hier stimmt was nicht ( "ZWEITER_WE_STATUS"                                , 0xfdba, 0),
         ( "WPSTUFEN_WW"                                      , 0xfdbb, ElsterValueType.et_little_endian),
         ( "WW_MIT_2WE"                                       , 0xfdbc, ElsterValueType.et_little_endian),
         ( "SPERREN_2WE"                                      , 0xfdbd, ElsterValueType.et_little_endian),
@@ -3689,7 +3689,35 @@ public partial class KElsterTable
         ( "INFOBLOCK_6"                                      , 0xfe07, 0)
     };
 
+    /// <summary>
+    /// Zuordnung der Elster-Index zu den Tabellen-Index. Dient dem schnellen Zugriff
+    /// von bekannten Elster-Index auf die Daten zu diesem in der Tabelle.
+    /// Beispiel: 
+    /// <code>
+    ///  int ind = KElsterTable.ElsterTabIndex[ElsterIndex];
+    ///  if (ind >= 0)  // Nur wenn ein Eintrag vorhanden ist
+    ///  {
+    ///     var elsterEntry         = KElsterTable.ElsterTable[ind];
+    ///  }
+    ///  </code>
+    /// </summary>
     public static readonly short[] ElsterTabIndex = InitializeElsterTabIndex();
+
+    /// <summary>
+    /// Zuordnung von einem Elster-Indexnamen zu dem Elster-Index. Dient dem schnellen Zugriff
+    /// von bekannten Elster-Indexnamen auf den Elster-Index, sofern der entprechende Elster-Index-Eintrag
+    /// vorhanden ist. Zusätzlich wird auch sichergestellt, dass keine doppelte Elster-Indexnamen vorhanden sind.
+    /// Beispiel:
+    /// <code>
+    ///  ushort elsterIndex = KElsterTable.ElsterTabIndexName[ElsterIndexName];
+    ///  if (ElsterTableIndexMap.TryGetValue("VORLAUFSOLLTEMP", out ushort elsterIndex))
+    ///  {
+    ///    // ...
+    ///  }
+    ///  </code>
+    /// </summary>
+    public static readonly Dictionary<string, ushort> ElsterTabIndexName = ElsterTable.ToDictionary(x => x.Name, x => x.Index);
+
     public static (ushort Index, string Name)[] ErrorList =
     {
         (0x0002, "Schuetz klebt"),

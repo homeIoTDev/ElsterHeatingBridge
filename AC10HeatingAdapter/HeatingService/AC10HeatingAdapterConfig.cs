@@ -5,9 +5,11 @@ namespace AC10Service;
 public class AC10HeatingAdapterConfig
 {
     /// <summary>
-    /// Mögliche SenderCanIDs: 700 (External), 710 to 71f, and 780 to 79f, 680 to 69f
+    /// Can-ID, die für das Senden genutzt wird, wenn keine ID explizit angegeben wird. Das Format ist hexadezimal, z.B. 0x700
+    /// Mögliche SenderCanIDs: 0x700 (External), 0x710 to 0x71f, and 0x780 to 0x79f, 0x680 to ox69f
     /// </summary>
-    public ushort StandardSenderCanID { get; set; } = 0x700;
+    public string StandardSenderCanID { get; set; } = "0x700";
+
     /// <summary>
     /// Anzahl der Wiederholungen bei einem Sendefehler
     /// </summary>
@@ -19,5 +21,5 @@ public class AC10HeatingAdapterConfig
     /// <summary>
     /// Maximale Wartezeit in ms für den Empfang eines Antwortframes
     /// </summary>
-    public int MaxReceivingWaitTime { get; set; } = 400; 
+    public int MaxReceivingWaitTime { get; set; } = 560; 
 }

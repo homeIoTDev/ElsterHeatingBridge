@@ -1,0 +1,16 @@
+[Unit]
+Description=Communication with Tecalor/Stiebel Eltron TTL AC 10 heat pump over CAN bus. The data is exchanged via MQTT message broker.
+After=network.target
+# This file needs to exist in the /etc/systemd/system/ directory
+[Service]
+
+ExecStart=/usr/bin/dotnet /home/sme/source/ElsterHeatingBridge/HeatingDaemon/HeatingMqttService/bin/Debug/net8.0/HeatingMqttService.dll
+Restart=always
+RestartSec=10
+SyslogIdentifier=HeatingDaemon
+User=sme
+Environment=ASPNETCORE_ENVIRONMENT=Development
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target

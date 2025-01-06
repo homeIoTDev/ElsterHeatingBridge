@@ -5,12 +5,12 @@
         "version": "2.0.0",
         "tasks": [
             {
-                "label": "Kill AC10 process",
+                "label": "Kill HeatingDaemon process",
                 "type": "shell",
                 "command": "bash",
                 "args": [
                     "-c",
-                    "${workspaceFolder}/.vscode/sigint_ac10_service.sh"
+                    "${workspaceFolder}/.vscode/sigint_HeatingDaemon_service.sh"
                     // | xargs kill -s SIGINT"
                 ],
                 "problemMatcher": []

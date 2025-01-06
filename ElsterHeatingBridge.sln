@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AC10HeatingMqttService", "AC10HeatingMqttService\AC10HeatingMqttService.csproj", "{561EF6BF-20FD-45EE-A8CC-9C8A5066ECCF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HeatingDaemon", "HeatingDaemon", "{7BEE658B-544C-4277-86F8-8540D4CF12AB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AC10", "AC10", "{7BEE658B-544C-4277-86F8-8540D4CF12AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeatingMqttService", "HeatingDaemon\HeatingMqttService\HeatingMqttService.csproj", "{561EF6BF-20FD-45EE-A8CC-9C8A5066ECCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AC10HeatingAdapter", "AC10HeatingAdapter\AC10HeatingAdapter.csproj", "{2A4B33D3-C6FF-45DE-9D80-6FD21817E780}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeatingAdapter", "HeatingDaemon\HeatingAdapter\HeatingAdapter.csproj", "{2A4B33D3-C6FF-45DE-9D80-6FD21817E780}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AC10MqttAdapter", "AC10\AC10MqttAdapter\AC10MqttAdapter.csproj", "{5F11FDC1-63AD-4978-8852-F498CD44EEF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MqttAdapter", "HeatingDaemon\MqttAdapter\MqttAdapter.csproj", "{5F11FDC1-63AD-4978-8852-F498CD44EEF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

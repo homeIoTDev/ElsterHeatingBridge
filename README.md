@@ -1,4 +1,4 @@
-# Tecalor/Stiebel Eltron Heatpump Interface
+# Tecalor/Stiebel Eltron Heatpump Bridge
 =============================================
 
 ## Beschreibung

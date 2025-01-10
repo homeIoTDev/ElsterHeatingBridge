@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
 namespace HeatingDaemon;
@@ -10,20 +11,24 @@ public class HeatingMqttService: IHostedService
 {
 
     private readonly ILogger<HeatingMqttService>    _logger;
+    private readonly HeatingMqttServiceConfig       _heatingMqttServiceConfig;
     private readonly Lazy<UsbTinCanBusAdapter>      _usbTinCanBusAdapter;
     private readonly Lazy<MqttAdapter>              _ac10MqttAdapter;
     private readonly Lazy<HeatingAdapter>           _heatingAdapter;
     private readonly CancellationTokenSource        _cts = new CancellationTokenSource();
 
-    public HeatingMqttService(  ILogger<HeatingMqttService> logger,
-                                    Lazy<UsbTinCanBusAdapter> usbTinCanBusAdapter,
-                                    Lazy<MqttAdapter> ac10MqttAdapter,
-                                    Lazy<HeatingAdapter> heatingAdapter)
+    public HeatingMqttService(  IOptions<HeatingMqttServiceConfig> heatingMqttServiceConfig,
+                                Lazy<UsbTinCanBusAdapter> usbTinCanBusAdapter,
+                                Lazy<MqttAdapter> ac10MqttAdapter,
+                                Lazy<HeatingAdapter> heatingAdapter,
+                                ILogger<HeatingMqttService> logger
+                                )
     {
-        _logger                 = logger;
-        _usbTinCanBusAdapter    = usbTinCanBusAdapter;
-        _ac10MqttAdapter        = ac10MqttAdapter;
-        _heatingAdapter         = heatingAdapter;
+        _logger                     = logger;
+        _heatingMqttServiceConfig   = heatingMqttServiceConfig.Value;
+        _usbTinCanBusAdapter        = usbTinCanBusAdapter;
+        _ac10MqttAdapter            = ac10MqttAdapter;
+        _heatingAdapter             = heatingAdapter;
         _logger.LogInformation("IsSystemd: {isSystemd}", SystemdHelpers.IsSystemdService());
     }
         

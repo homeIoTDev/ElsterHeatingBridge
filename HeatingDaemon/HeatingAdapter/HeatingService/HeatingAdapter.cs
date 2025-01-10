@@ -19,8 +19,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
     private HeatingAdapterConfig                    _heatingAdapterConfig;
 
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
-                              ICanBusService canBusService,
-                              ILogger<HeatingAdapter> logger)
+                          ICanBusService canBusService,
+                          ILogger<HeatingAdapter> logger)
     {
       _heatingAdapterConfig = heatingAdapterConfig.Value;
       _canBusService = canBusService;

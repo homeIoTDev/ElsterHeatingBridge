@@ -3709,8 +3709,15 @@ public partial class KElsterTable
     /// vorhanden ist. Zusätzlich wird auch sichergestellt, dass keine doppelte Elster-Indexnamen vorhanden sind.
     /// Beispiel:
     /// <code>
-    ///  ushort elsterIndex = KElsterTable.ElsterTabIndexName[ElsterIndexName];
-    ///  if (ElsterTableIndexMap.TryGetValue("VORLAUFSOLLTEMP", out ushort elsterIndex))
+    ///  try {
+    ///     ushort elsterIndex = KElsterTable.ElsterTabIndexName[ElsterIndexName];
+    ///  } catch (KeyNotFoundException) {
+    ///     // ElsterIndexName nicht gefunden
+    ///  }
+    ///
+    ///  // Alternativ
+    ///  
+    ///  if (ElsterTabIndexName.TryGetValue("VORLAUFSOLLTEMP", out ushort elsterIndex))
     ///  {
     ///    // ...
     ///  }

@@ -77,6 +77,7 @@ class Program
                 services.Configure<UsbTinCanBusAdapterConfig>(hostContext.Configuration.GetSection("UsbTinCanBusAdapterConfig"));
                 services.Configure<MqttAdapterConfig>(hostContext.Configuration.GetSection("MqttAdapterConfig"));
                 services.Configure<HeatingAdapterConfig>(hostContext.Configuration.GetSection("HeatingAdapterConfig"));
+                services.Configure<HeatingMqttServiceConfig>(hostContext.Configuration.GetSection("HeatingMqttServiceConfig"));
                 services.AddSingleton<MqttAdapter>();   //Verwendet HeatingMqttService direkt
                 services.AddSingleton<UsbTinCanBusAdapter>();
                 services.AddSingleton<HeatingAdapter>();

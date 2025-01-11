@@ -38,6 +38,7 @@ public class HeatingMqttService: IHostedService
         _ac10MqttAdapter.Value.Start();
         _usbTinCanBusAdapter.Value.Start();
         _ = Task.Run(() => ProcessConsoleInput(_cts.Token), _cts.Token);
+        _ = Task.Run(() => ProcessCyclicReadingsQuery(_cts.Token), _cts.Token);
         await Task.CompletedTask;
     }
 
@@ -49,6 +50,39 @@ public class HeatingMqttService: IHostedService
         _ac10MqttAdapter.Value.Stop();
         // Your shutdown logic here
         await Task.CompletedTask;
+    }
+
+    private void ProcessCyclicReadingsQuery(CancellationToken token)
+    {
+        _logger.LogInformation("Starte CyclicReadingsQuery Service...");
+        if(_heatingMqttServiceConfig.CyclicReadingsQuery == null)
+        {
+            _logger.LogWarning("No CyclicReadingsQuery configuration found. CyclicReadingsQuery is null");
+             return;
+        }
+
+        // Read all CyclicReadingsQuery configurations
+        List<CyclicReadingQueryDto> cyclicReadingQueryList = new List<CyclicReadingQueryDto>();
+        _heatingMqttServiceConfig.CyclicReadingsQuery.ForEach(queryConfig =>
+        {
+             CyclicReadingQueryDto? item = CyclicReadingQueryDto.From(queryConfig);
+             if(item != null)
+             {
+                 cyclicReadingQueryList.Add(item);
+             }
+             else
+             {
+                 _logger.LogWarning("CyclicReadingsQuery configuration is invalid: {queryConfig}", queryConfig);
+             }
+            _logger.LogInformation("CyclicReadingsQuery: {queryConfig}", queryConfig);
+        });
+       
+
+        while (!_cts.IsCancellationRequested) 
+        {
+            Task.Delay(300); // Verhindert eine CPU-Überlastung  
+        }
+        _logger.LogInformation("Stopping CyclicReadingsQuery Service...");
     }
 
     private void ProcessConsoleInput(CancellationToken token)
@@ -110,6 +144,7 @@ public class HeatingMqttService: IHostedService
             } 
             Task.Delay(300); // Verhindert eine CPU-Überlastung 
         }
+        _logger.LogInformation("Stopping Keyboard Input Service...");
     }
 }
 

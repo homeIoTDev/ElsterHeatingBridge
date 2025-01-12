@@ -84,13 +84,18 @@ public class MqttAdapter: IDisposable, IMqttService
     /// </summary>
     /// <param name="name">Name der Heizungsvariable</param>
     /// <param name="value">Wert der Heizungsvariable</param>
-    public void SetReading(string name, string value)
+    /// <param name="forceSend">Sende den Wert auch dann, wenn er sich nicht geändert hat.</param>
+    public void SetReading(string name, string value, bool forceSend = false)
     {
         if (_readings.ContainsKey(name))
         {
             if (_readings[name] != value)
             {
                 _readings[name] = value;
+                SendReading(name, value);
+            }
+            else if (forceSend)
+            {
                 SendReading(name, value);
             }
         }

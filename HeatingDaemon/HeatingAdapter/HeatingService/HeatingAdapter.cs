@@ -13,18 +13,24 @@ public class HeatingAdapter : IDisposable, IHeatingService
 {
     private readonly ILogger<HeatingAdapter>        _logger;
     private ICanBusService                          _canBusService;
+    private IMqttService                            _mqttService;
     private bool                                    _storeResponseFramesInQueue = false;
     private readonly BlockingCollection<ElsterCANFrame>_responseFramesQueue = new(new ConcurrentQueue<ElsterCANFrame>());
     private object                                  _sendLock = new();
     private HeatingAdapterConfig                    _heatingAdapterConfig;
+    private List<CyclicReadingQueryDto>             _cyclicReadingQueryList = new();
+    private ushort                                  _standardSenderCanID = 0x700;
 
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
                           ICanBusService canBusService,
+                          IMqttService mqttService,
                           ILogger<HeatingAdapter> logger)
     {
       _heatingAdapterConfig = heatingAdapterConfig.Value;
-      _canBusService = canBusService;
-      _logger = logger;
+      _canBusService        = canBusService;
+      _mqttService          = mqttService;
+      _logger               = logger;
+      try { _standardSenderCanID = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);} catch {}
     }
 
 //Todo: Diese Methode sollte Schnell ausgefuehrt werden und
@@ -44,8 +50,31 @@ public class HeatingAdapter : IDisposable, IHeatingService
               }
         }
 
-        if(elsterFrame != null) {
-          if(elsterFrame.IsValidTelegram && elsterFrame.IsKnownElsterIndex)
+        if(elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value !=null) {
+          
+          foreach(CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
+          {
+            if ( cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex  &&
+                (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
+                  (uint)cyclicReadingQuery.ReceiverCanID == elsterFrame.ReceiverCanId  && 
+                  ((ushort)cyclicReadingQuery.SenderCanID > 0x7FF) || 
+                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.SenderCanId) ||
+
+                (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
+                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.ReceiverCanId  && 
+                  (((ushort)cyclicReadingQuery.SenderCanID > 0x7FF &&
+                  _standardSenderCanID == elsterFrame.ReceiverCanId) || 
+                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.ReceiverCanId))
+               )
+            {
+              _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' triggered");
+              _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
+                                      elsterFrame.Value.ToString(),
+                                      cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+            }
+          }
+          
+          if(elsterFrame.IsKnownElsterIndex)
           {
             _logger.LogDebug($"{elsterFrame.ToString()}");
           }
@@ -54,6 +83,44 @@ public class HeatingAdapter : IDisposable, IHeatingService
             _logger.LogWarning($"{elsterFrame.ToString()}");
           }
         }
+    }
+
+    public void CyclicReadingLoop( CancellationToken cts, List<CyclicReadingQueryDto> readingList)
+    {
+        _cyclicReadingQueryList = readingList;
+
+        while (!cts.IsCancellationRequested) 
+        {
+            foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
+            {
+                if(cts.IsCancellationRequested) break;
+                
+                if( ( cyclicReadingQuery.Schedule == ScheduleType.AtStartup && 
+                      cyclicReadingQuery.LastReadTime == DateTime.MinValue) ||
+                      cyclicReadingQuery.Schedule == ScheduleType.Periodic)
+                {
+                    // Read the value if the interval is reached
+                    if(cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.Seconds) < DateTime.Now)
+                    {
+                        if(cyclicReadingQuery.Operation == OperationType.GetElsterValue)
+                        {
+                            _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}");
+                            if(RequestElsterValue(
+                                (ushort)cyclicReadingQuery.SenderCanID,
+                                (ushort)cyclicReadingQuery.ReceiverCanID,
+                                cyclicReadingQuery.ElsterIndex,
+                                out var elsterValue)==true)
+                            {
+                                cyclicReadingQuery.LastReadTime = DateTime.Now;
+                            }
+                        }
+                    }
+                }
+  
+            }
+            Thread.Sleep(1000);  // the minimum loop time of 1 second  
+        }
+
     }
 
     /// <summary>
@@ -65,12 +132,9 @@ public class HeatingAdapter : IDisposable, IHeatingService
 
     public void ScanElsterModules(ushort senderCanId = 0xFFF) 
     {
-      try {
-        if(senderCanId > 0x7FF) senderCanId = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);
-      }
-      catch {
-        senderCanId = 0x700;
-      }
+
+      if(senderCanId > 0x7FF) senderCanId = _standardSenderCanID;
+
       _logger.LogInformation("Scanning for Elster modules...");
       Modules.Clear();
       StringBuilder logString = new StringBuilder();
@@ -165,7 +229,6 @@ public class HeatingAdapter : IDisposable, IHeatingService
         {
           sendElsterFrame2.ElsterIndex  = (ushort)(sendElsterFrame2.ElsterIndex - 1);
           ElsterCANFrame? responseFrame = null;
-          //Thread.Sleep(100);  // 100ms warten, aber warum?
           if(!TrySendElsterCanFrame(sendElsterFrame2, out responseFrame, true))
             return false;
 

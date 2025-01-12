@@ -65,23 +65,20 @@ public class HeatingMqttService: IHostedService
         List<CyclicReadingQueryDto> cyclicReadingQueryList = new List<CyclicReadingQueryDto>();
         _heatingMqttServiceConfig.CyclicReadingsQuery.ForEach(queryConfig =>
         {
-             CyclicReadingQueryDto? item = CyclicReadingQueryDto.From(queryConfig);
+             CyclicReadingQueryDto? item = queryConfig.ToCyclicReadingQueryDto();
              if(item != null)
              {
                  cyclicReadingQueryList.Add(item);
              }
              else
              {
-                 _logger.LogWarning("CyclicReadingsQuery configuration is invalid: {queryConfig}", queryConfig);
+                 _logger.LogWarning($"CyclicReadingsQuery configuration is invalid: {queryConfig}");
              }
-            _logger.LogInformation("CyclicReadingsQuery: {queryConfig}", queryConfig);
+            _logger.LogInformation($"CyclicReadingsQuery: {queryConfig}");
         });
        
-
-        while (!_cts.IsCancellationRequested) 
-        {
-            Thread.Sleep(300); // Verhindert eine CPU-Überlastung  
-        }
+        // Start the cyclic reading query loop
+        _heatingAdapter.Value.CyclicReadingLoop(token, cyclicReadingQueryList);
         _logger.LogInformation("Stopping CyclicReadingsQuery Service...");
     }
 

@@ -10,7 +10,7 @@ public interface IMqttService
     /// </summary>
     /// <param name="name">Name der Heizungsvariable</param>
     /// <param name="value">Neuer Wert der Heizungsvariable</param>
-    void SetReading(string name, string value);
+    void SetReading(string name, string value, bool forceSend = false);
 
     void LogAllReadings();
 }

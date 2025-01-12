@@ -154,4 +154,12 @@ public class CyclicReadingQueryDto
     private CyclicReadingQueryDto(string readingName) {
         ReadingName = readingName;
     }
+    /// <summary>
+    /// Gibt die Repräsentation des Objekts als Zeichenfolge zurück.
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return $"ReadingName: {ReadingName}, SenderCanID: {SenderCanID}, ReceiverCanID: {ReceiverCanID}, Operation: {Operation}, Schedule: {Schedule}, Interval: {Interval}, ElsterIndex: {ElsterIndex}, SendCondition: {SendCondition}";
+    }
 }

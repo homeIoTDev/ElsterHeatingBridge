@@ -155,7 +155,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
         SendLine(""); // clear CanAdapter-buffer. 2x
         SendLine(""); 
         SendLine("C"); // close CAN-Bus channel, if open.
-        Task.Delay(200);
+        Thread.Sleep(200);
         SendLine("V"); // get HW Version --> return Vxxxxyyyy\r
         SendLine("S1"); // setup standard CAN bit-rate 20kBit(S1)
 

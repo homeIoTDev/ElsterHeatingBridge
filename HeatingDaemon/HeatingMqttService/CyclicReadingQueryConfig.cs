@@ -52,4 +52,9 @@ public class CyclicReadingQueryConfig
     /// Sendebedingung der Leseabfrage.
     /// </summary>
     public string? SendCondition { get; set; }
+
+    public override string ToString()
+    {
+        return $"{ReadingName} {SenderCanID} {ReceiverCanID} {Operation} {ScheduleType} {IntervalInSeconds} {ElsterIndex} {SendCondition}";
+    }
 }

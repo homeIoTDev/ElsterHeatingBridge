@@ -80,7 +80,7 @@ public class HeatingMqttService: IHostedService
 
         while (!_cts.IsCancellationRequested) 
         {
-            Task.Delay(300); // Verhindert eine CPU-Überlastung  
+            Thread.Sleep(300); // Verhindert eine CPU-Überlastung  
         }
         _logger.LogInformation("Stopping CyclicReadingsQuery Service...");
     }
@@ -142,7 +142,7 @@ public class HeatingMqttService: IHostedService
                     _heatingAdapter.Value.ScanElsterModules();
                 }
             } 
-            Task.Delay(300); // Verhindert eine CPU-Überlastung 
+            Thread.Sleep(300); // Verhindert eine CPU-Überlastung 
         }
         _logger.LogInformation("Stopping Keyboard Input Service...");
     }

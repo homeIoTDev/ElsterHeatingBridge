@@ -102,6 +102,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
             foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
             {
                 if(cts.IsCancellationRequested) break;
+                if(_canBusService.IsCanBusOpen == false) break;
                 
                 if( ( cyclicReadingQuery.Schedule == ScheduleType.AtStartup && 
                       cyclicReadingQuery.LastReadTime == DateTime.MinValue) ||

@@ -14,12 +14,12 @@ public class CyclicReadingQueryDto
     /// <summary>
     /// Sender CAN-ID.
     /// </summary>
-    public ElsterModule SenderCanID { get; set; }
+    public ElsterModule SenderCanId { get; set; }
 
     /// <summary>
     /// Empfänger CAN-ID.
     /// </summary>
-    public ElsterModule ReceiverCanID { get; set; }
+    public ElsterModule ReceiverCanId { get; set; }
 
     /// <summary>
     /// Funktion der Leseabfrage.
@@ -68,6 +68,6 @@ public class CyclicReadingQueryDto
     /// <returns></returns>
     public override string ToString()
     {
-        return $"ReadingName: {ReadingName}, SenderCanID: {SenderCanID}, ReceiverCanID: {ReceiverCanID}, Operation: {Operation}, Schedule: {Schedule}, Interval: {Interval}, ElsterIndex: {ElsterIndex}, SendCondition: {SendCondition}";
+        return $"ReadingName: {ReadingName}, SenderCanID: {SenderCanId}, ReceiverCanID: {ReceiverCanId}, Operation: {Operation}, Schedule: {Schedule}, Interval: {Interval}, ElsterIndex: {ElsterIndex}, SendCondition: {SendCondition}";
     }
 }

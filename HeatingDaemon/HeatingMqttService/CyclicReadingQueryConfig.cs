@@ -139,8 +139,8 @@ public class CyclicReadingQueryConfig
 
         return new CyclicReadingQueryDto ( this.ReadingName)
         {
-            SenderCanID     = senderCanID,
-            ReceiverCanID   = receiverCanID,
+            SenderCanId     = senderCanID,
+            ReceiverCanId   = receiverCanID,
             Operation       = operation,
             Schedule        = scheduleType,
             Interval        = TimeSpan.FromSeconds(this.IntervalInSeconds),

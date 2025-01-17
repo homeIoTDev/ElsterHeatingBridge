@@ -14,7 +14,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
     private System.Timers.Timer                     _openPortTimer;
     private Lazy<IHeatingService>                   _heatingService;
     private IMqttService                            _mqttService;
-    private bool                                    _isCanBusOpen = false;
+    public bool                                     IsCanBusOpen{ get; private set; } = false;
     private CanAdapterResponse                      _lastCanAdapterResponse;
     private readonly ManualResetEventSlim           _sendLineResetEvent = new ManualResetEventSlim(false);
     private readonly object                         _sendLineLock       = new object();
@@ -143,7 +143,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
     {
         _logger.LogInformation("Resetting UsbTinCanBusAdapter.");
         try { _serialPort?.Close(); } catch { }  // Close serial port in case of error
-        _isCanBusOpen = false;
+        IsCanBusOpen = false;
         _mqttService.SetReading("CAN_Channel", "undefined");
     }
 
@@ -168,7 +168,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
 
         if(SendLine("O")==CanAdapterResponse.OK) // open CAN-Bus channel
         {
-            _isCanBusOpen = true;
+            IsCanBusOpen = true;
             _mqttService.SetReading("CAN_Channel", "opened"); 
             SendLine("F"); // get Error state
         }
@@ -268,7 +268,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
                     if ( line[0] == 'F')  // old version of usbtin use Vxx und vyy in two lines
                     {
                         SetCanAdapterResponse(CanAdapterResponse.OK);
-                        if(_isCanBusOpen)
+                        if(IsCanBusOpen)
                         {
                             ProcessCanBusErrorResponse(line.Substring(1,2));
                         }

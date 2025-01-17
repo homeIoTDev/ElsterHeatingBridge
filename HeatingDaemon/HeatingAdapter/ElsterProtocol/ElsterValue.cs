@@ -376,7 +376,7 @@ public class ElsterValue
                 if ((elsterValue & 0xff) == 0 && (elsterValue >> 8) < BetriebsartList.Length)
                     retString.Append(BetriebsartList[elsterValue >> 8].Name);
                 else
-                    retString.Append("?:et_betriebsart");
+                    retString.Append($"0x{(ushort)elsterValue:X4} ?:et_betriebsart");
                 break;
         }
       

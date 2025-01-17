@@ -54,23 +54,29 @@ public class HeatingAdapter : IDisposable, IHeatingService
           
           foreach(CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
           {
-            if ( cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex  &&
-                (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
-                  (uint)cyclicReadingQuery.ReceiverCanID == elsterFrame.ReceiverCanId  && 
-                  ((ushort)cyclicReadingQuery.SenderCanID > 0x7FF) || 
-                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.SenderCanId) ||
-
-                (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
-                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.ReceiverCanId  && 
-                  (((ushort)cyclicReadingQuery.SenderCanID > 0x7FF &&
-                  _standardSenderCanID == elsterFrame.ReceiverCanId) || 
-                  (uint)cyclicReadingQuery.SenderCanID == elsterFrame.ReceiverCanId))
-               )
+            if ( cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex )
             {
-              _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' triggered");
+              if 
+                (
+                
+                  (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
+                    (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.ReceiverCanId  && 
+                    ((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) || 
+                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId) ||
+
+                  (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
+                    (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.SenderCanId  && 
+                    (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF &&
+                    _standardSenderCanID == elsterFrame.ReceiverCanId) || 
+                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.ReceiverCanId))
+                  )
+                
+            {
+              _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' is being collected");
               _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
                                       elsterFrame.Value.ToString(),
                                       cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+            }
             }
           }
           
@@ -91,6 +97,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
 
         while (!cts.IsCancellationRequested) 
         {
+          if(_canBusService.IsCanBusOpen)
+          {
             foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
             {
                 if(cts.IsCancellationRequested) break;
@@ -106,8 +114,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
                         {
                             _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}");
                             if(RequestElsterValue(
-                                (ushort)cyclicReadingQuery.SenderCanID,
-                                (ushort)cyclicReadingQuery.ReceiverCanID,
+                                (ushort)cyclicReadingQuery.SenderCanId,
+                                (ushort)cyclicReadingQuery.ReceiverCanId,
                                 cyclicReadingQuery.ElsterIndex,
                                 out var elsterValue)==true)
                             {
@@ -116,9 +124,9 @@ public class HeatingAdapter : IDisposable, IHeatingService
                         }
                     }
                 }
-  
             }
-            Thread.Sleep(1000);  // the minimum loop time of 1 second  
+          }
+          Thread.Sleep(1000);  // the minimum loop time of 1 second  
         }
 
     }

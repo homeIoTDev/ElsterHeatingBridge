@@ -15,7 +15,8 @@ public enum ElsterModule
     /// CAN-ID 0x000 - Direct.
     /// </summary>
     /// <remarks>
-    /// Queries with short Elster telegrams should not be performed on this module (currently only long telegrams are supported anyway).
+    /// Queries with short Elster telegrams should not be performed on this module 
+    /// (currently only long telegrams are supported anyway).
     /// The central error list can be queried here.
     /// </remarks>
     Direct = 0x000,
@@ -23,7 +24,8 @@ public enum ElsterModule
     /// CAN-ID 0x0100 - FES Comfort module 
     /// </summary>
     /// <remarks>
-    /// This module is directly located at the WPM3. If the placement is also the same as the living space (e.g. not in an unheated basement),
+    /// This module is directly located at the WPM3. 
+    /// If the placement is also the same as the living space (e.g. not in an unheated basement),
     /// then possibly no extra FEK is required.
     /// </remarks>
     FES_COMFORT = 0x100,

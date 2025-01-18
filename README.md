@@ -167,7 +167,7 @@ So werden die Busteilnehmer laut WPM3-Display dargestellt:
 
 
 ```
-	    scan on CAN-id: 700
+      scan on CAN-id: 700
       list of valid can id's:
       
         000 (C306 = 195-06)

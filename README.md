@@ -114,7 +114,7 @@ In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfigu
 |Periodic|Die Leseabfrage wird periodisch ausgeführt. Ein Intervall in Sekunden ist erforderlich|
 |Passive|Die Leseabfrage wird nicht ausgeführt, sondern nur Telegramme, die durch anderer Busteilnehmen erzeugt wurden, werden verarbeitet|
 
-## Ideensammlung
+## Vorschläge und offene Aufgaben
 ----------------
 
 - [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
@@ -181,3 +181,10 @@ So werden die Busteilnehmer laut WPM3-Display dargestellt:
         602 (8000 = 128-00)
         680 (8000 = 128-00)
 '''
+## Untersuchung 17.01.25 - PROGRAMMSCHALTER/Betriebsart zwischen FEK und FES
+Bei der Übergabe von der Betriebsart zwischen FEK und FES gibt es ein Problem: Wenn an der FEK eine Betriebsart ausgewählt wird, 
+wird dies nicht an die FES oder an andere Busteilnehmer weitergegeben. Dazu eine Beobachtung:
+- An der FEK wird eine Betriebsart ausgewählt, aber kein Telegram wird an die FES oder an einen andere Busteilnehmer gesendet.
+- An der FES wird eine Betriebsart ausgewählt, dann wird das Telegram von der FES an die anderen Busteilnehmer gesendet, aber nicht an das FEK.
+Es ist also möglich, dass am FEK und FES unterschiedliche Betriebsarteinstellungen vorliegen, was definitiv nicht so sein sollte.
+Es ist jedoch festzustellen, dass die Heizung tatsächlich das Programm von der FEK verwendet.

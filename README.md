@@ -166,7 +166,7 @@ So werden die Busteilnehmer laut WPM3-Display dargestellt:
 |04.   |WP1   |243-10   |   
 
 
-'''
+```
 	    scan on CAN-id: 700
       list of valid can id's:
       
@@ -180,7 +180,8 @@ So werden die Busteilnehmer laut WPM3-Display dargestellt:
         601 (8000 = 128-00)
         602 (8000 = 128-00)
         680 (8000 = 128-00)
-'''
+```
+
 ## Untersuchung 17.01.25 - PROGRAMMSCHALTER/Betriebsart zwischen FEK und FES
 Bei der Übergabe von der Betriebsart zwischen FEK und FES gibt es ein Problem: Wenn an der FEK eine Betriebsart ausgewählt wird, 
 wird dies nicht an die FES oder an andere Busteilnehmer weitergegeben. Dazu eine Beobachtung:

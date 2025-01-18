@@ -21,7 +21,7 @@ public enum ElsterModule
     /// </remarks>
     Direct = 0x000,
     /// <summary>
-    /// CAN-ID 0x0100 - FES Comfort module 
+    /// CAN-ID 0x0100 - FES Comfort module (Stiebel Eltron) 
     /// </summary>
     /// <remarks>
     /// This module is directly located at the WPM3. 
@@ -53,7 +53,8 @@ public enum ElsterModule
     /// </summary>
     AtezModule_Broadcast =0x2F9,
     /// <summary>
-    /// CAN-ID 0x0301 - Remote control module (FEK)
+    /// CAN-ID 0x0301 - Remote control module (Heizungs-Fernversteller oder Fernbedienung)
+    /// (FEK bei Stiebel Eltron, FET bei Tecalor) - HK 1
     /// </summary>
     RemoteControl = 0x301,
     /// <summary>
@@ -61,11 +62,11 @@ public enum ElsterModule
     /// </summary>
     RemoteControl_Broadcast = 0x379,
     /// <summary>
-    /// CAN-ID 0x0302 - Remote control module 2
+    /// CAN-ID 0x0302 - Remote control module HK 2
     /// </summary>
     RemoteControl2 = 0x302,
     /// <summary>
-    /// CAN-ID 0x0303 - Remote control module 3
+    /// CAN-ID 0x0303 - Remote control module HK 3
     /// </summary>
     RemoteControl3 = 0x303,
     /// <summary>

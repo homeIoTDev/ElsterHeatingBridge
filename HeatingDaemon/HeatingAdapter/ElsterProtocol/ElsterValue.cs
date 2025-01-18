@@ -373,7 +373,10 @@ public class ElsterValue
                 retString.AppendFormat("{0}-{1:D2}", ((ushort)elsterValue)>> 8, (ushort)elsterValue & 0xff);
                 break;
             case ElsterValueType.et_betriebsart:
-                if ((elsterValue & 0xff) == 0 && (elsterValue >> 8) < BetriebsartList.Length)
+                byte betriebsart = (byte)(elsterValue >> 8);
+                if(betriebsart==0x80) 
+                    retString.Append("et_betriebsart:unavailable");
+                else if ((elsterValue & 0xff) == 0 && betriebsart < BetriebsartList.Length)
                     retString.Append(BetriebsartList[elsterValue >> 8].Name);
                 else
                     retString.Append($"0x{(ushort)elsterValue:X4} ?:et_betriebsart");

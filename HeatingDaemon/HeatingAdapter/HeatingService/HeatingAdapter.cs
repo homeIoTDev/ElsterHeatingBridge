@@ -61,8 +61,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
                 
                   (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
                     (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.ReceiverCanId  && 
-                    ((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) || 
-                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId) ||
+                    (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) || 
+                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId)) ||
 
                   (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
                     (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.SenderCanId  && 
@@ -103,7 +103,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
             {
                 if(cts.IsCancellationRequested) break;
                 if(_canBusService.IsCanBusOpen == false) break;
-                
+
                 if( ( cyclicReadingQuery.Schedule == ScheduleType.AtStartup && 
                       cyclicReadingQuery.LastReadTime == DateTime.MinValue) ||
                       cyclicReadingQuery.Schedule == ScheduleType.Periodic)

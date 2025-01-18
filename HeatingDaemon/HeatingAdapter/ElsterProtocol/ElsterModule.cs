@@ -21,7 +21,7 @@ public enum ElsterModule
     /// </remarks>
     Direct = 0x000,
     /// <summary>
-    /// CAN-ID 0x0100 - FES Comfort module (Stiebel Eltron) 
+    /// CAN-ID 0x0100 - FES Comfort module (Stiebel Eltron) bzw. TCR comfort bei Tecalor
     /// </summary>
     /// <remarks>
     /// This module is directly located at the WPM3. 
@@ -94,7 +94,7 @@ public enum ElsterModule
     /// </summary>
     HeatingModule_Broadcast = 0x579,
     /// <summary>
-    /// CAN-ID 0x0580 - Bus coupler
+    /// CAN-ID 0x0580 - Bus coupler. Vermutlich das Internet-Service-Gateway (ISG) 
     /// </summary>
     BusCoupler = 0x580,
     /// <summary>
@@ -102,7 +102,7 @@ public enum ElsterModule
     /// </summary>
     BusCoupler_Broadcast=0x5F9,
     /// <summary>
-    /// CAN-ID 0x0601 - Mixer module 1
+    /// CAN-ID 0x0601 - Mixer module for HK1
     /// </summary>
     Mixer = 0x601,
     /// <summary>
@@ -110,11 +110,11 @@ public enum ElsterModule
     /// </summary>
     Mixer_Broadcast=0x679,
     /// <summary>
-    /// CAN-ID 0x0602 - Mixer module 2
+    /// CAN-ID 0x0602 - Mixer module for HK2
     /// </summary>
     Mixer2 = 0x602,
     /// <summary>
-    /// CAN-ID 0x0603 - Mixer module 3
+    /// CAN-ID 0x0603 - Mixer module for HK3
     /// </summary>
     Mixer3 = 0x603,
     /// <summary>

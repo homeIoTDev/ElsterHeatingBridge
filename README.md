@@ -60,6 +60,60 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 
 angeschaut werden.
 
+## Konfiguration
+In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:
+```
+"HeatingMqttServiceConfig": {
+    "CyclicReadingsQuery": [
+      {
+        {
+        "ReadingName": "T_Aussentemperatur",
+        "SenderCanID": "Boiler",
+        "ReceiverCanID": "FES_COMFORT",
+        "Function": "GetElsterValue",
+        "ScheduleType": "Passive",
+        "IntervalInSeconds": 0,
+        "SendCondition": "OnValueChange",
+        "ElsterIndex": "AUSSENTEMP"
+        },
+  ...
+```
+
+| Key |Beschreibung   |
+|---|---|
+|ReadingName |Text, der als Name des Readings verwendet wird, z.B. in FHEM oder im MQTT-Topic|
+|ReceiverCanID |CAN-ID des Empfaengermoduls, an die das Telegram gesendet wird. Kann eine Hex-Zahl oder ein vordefinierter Modul-Bezeichner sein|
+|Function|Nur GetElsterValue, um den Elster-Wert abzufragen und zu erhalten|
+|ScheduleType|Angabe, wann das Telegram ausgewertet werden soll. Siehe Tabelle ScheduleType|
+
+
+|Vordefinierte Module-Bezeichner| Hex-Wert|Beschreibung
+|---|---|----|
+|Direct|0x000|Direkte Steuerung, wenn z.B ein FEK installiert ist. Kaum abfragen möglich, aber z.b. die Fehlerliste|
+|FES_COMFORT|0x100|FES-Comfort-Modul, auch TCR-Comfort genannt. Hier ist das Display vom WPM |
+|Boiler|0x180|Boiler-Modul|
+|AtezModule|0x280|Vermutlich Solar-Heizmodul für Warmwasser|
+|RemoteControl|0x301|Heizungs-Fernversteller oder Fernbedienung (FEK bei Stiebel Eltron, FET bei Tecalor) - Heizkreis 1|
+|RemoteControl|0x302|Heizungs-Fernversteller oder Fernbedienung (FEK bei Stiebel Eltron, FET bei Tecalor) - Heizkreis 2|
+|RemoteControl_Broadcast|0x379|Telegram mit Informationen für alle Fernbedienungen bzw. für alle Heizkreise|
+|RoomThermostat|0x400|Raumtermostat. Ich vermute den Heizungs-Fernversteller FE7|
+|Manager|0x480|Der Manager|
+|HeatingModule|0x500|Heizungskontroll-Modul|
+|BusCoupler|0x580|Vermutlich das Internet-Service-Gateway (ISG)|
+|Mixer|0x601|Mischer für HK1|
+|Mixer|0x601|Mischer für HK2|
+|Mixer|0x601|Mischer für HK3|
+|Mixer_Broadcast|0x679|Telegram mit Informationen für alle Mischer bzw. für alle Heizkreise|
+|ComfortSoft|0x680|Anschluss über ein PC mit der Software ComfortSoft PC (ComfortSoft). Warnung: Nicht mit WPM3 nutzen|
+|ExternalDevice|0x700|Externes Modul. Wird für diese als Standard für diese Software verwendet|
+|Dcf|0x780|DCF-Modul, falls vorhanden um Winter und Sommerzeit Funktion zu realisieren|
+
+|ScheduleType|Bescheibung|
+|---|---|
+|AtStartup|Die Leseabfrage wird beim Start der Anwendung einamlig ausgeführt|
+|Periodic|Die Leseabfrage wird periodisch ausgeführt. Ein Intervall in Sekunden ist erforderlich|
+|Passive|Die Leseabfrage wird nicht ausgeführt, sondern nur Telegramme, die durch anderer Busteilnehmen erzeugt wurden, werden verarbeitet|
+
 ## Ideensammlung
 ----------------
 

@@ -43,6 +43,15 @@ Use of this code is at your own risk. No warranty is given for the correctness o
 
 ## Installation
 -------------
+.net 8.0 installieren 
+```
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x ./dotnet-install.sh
+./dotnet-install.sh --version latest --runtime aspnetcore
+
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.bashrc
+```
 
 Die Konfiguration befindet sich normalerweise in der `appsettings.json` Datei. Konfigurationen können auch über den Befehl `dotnet run --HeatingAdapterConfig:PortName="/dev/ttyACM0"` gesetzt werden. Das Programm basiert auf Microsoft .NET Core 8, was eine Voraussetzung ist.
 
@@ -59,6 +68,8 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 	sudo journalctl -u HeatingDaemon
 
 angeschaut werden.
+
+
 
 ## Konfiguration
 In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:
@@ -125,6 +136,7 @@ In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfigu
 - [x] Implementieren von einer Konfigurationsmöglichkeit, die Readingname, SenderCanID, Funktion oder ElsterValue und Abfragezyklus übernimmt. 
 - [x] Implementation dieser zyklischen Abfragefunktion. Funktionen sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
 - [x] Implementieren der Konfigurationen für MQTT-Ausleitung und zyklisches Abfragen von bestimmten Werten
+- [ ] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-x32 --no-self-contained
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
 - [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren

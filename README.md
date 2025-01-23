@@ -188,4 +188,5 @@ wird dies nicht an die FES oder an andere Busteilnehmer weitergegeben. Dazu eine
 - An der FEK wird eine Betriebsart ausgewählt, aber kein Telegram wird an die FES oder an einen andere Busteilnehmer gesendet.
 - An der FES wird eine Betriebsart ausgewählt, dann wird das Telegram von der FES an die anderen Busteilnehmer gesendet, aber nicht an das FEK.
 Es ist also möglich, dass am FEK und FES unterschiedliche Betriebsarteinstellungen vorliegen, was definitiv nicht so sein sollte.
+
 Es ist jedoch festzustellen, dass die Heizung tatsächlich das Programm von der FEK verwendet.

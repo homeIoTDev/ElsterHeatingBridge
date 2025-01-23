@@ -32,4 +32,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: published-app
-        path: /HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/
+        path: |
+            **/bin/Release/net8.0/linux-arm/publish/

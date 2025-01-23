@@ -27,3 +27,10 @@ jobs:
 
     - name: Publish
       run: dotnet publish HeatingDaemon/HeatingMqttService/HeatingMqttService.csproj -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: published-app
+        path: |
+          /HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/

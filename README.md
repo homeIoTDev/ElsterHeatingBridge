@@ -154,7 +154,7 @@ In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfigu
 - [ ] Implementieren der WPM-Funktionen: Auslesen der Temperaturen, Umschaltung auf Sommerbetrieb
 - [ ] Implementieren der Warmwassersteuerung: Temperaturfestlegung für Extra Warmwasser (WE), Zeitpunktfestlegung (Wenn wärmster Zeitpunkt und angeschlossen an Heizungsvorgang)
 
-##FHEM
+## FHEM
 
 [Installation und Visualisierung in FHEM](doc/fhem.md)
 

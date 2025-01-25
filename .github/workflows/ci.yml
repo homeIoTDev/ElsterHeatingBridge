@@ -49,7 +49,9 @@ jobs:
     - name: Create GitHub Release
       run: gh release create v1.0.0 -p -t "Release latest" 
       id: create_release
-
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Upload Release Assets
       uses: actions/upload-release-asset@v1
       env:

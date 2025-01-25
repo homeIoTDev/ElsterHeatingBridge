@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Globalization;
 using static HeatingDaemon.KElsterTable;
 
 namespace HeatingDaemon;
@@ -274,8 +275,10 @@ public class ElsterValue
     }
 
     /// <summary>
-    /// Gibt den Wert des ElsterValues als String zurück und gibt bei unbekannten oder ungültigen Werten 
-    /// auch die Rohdaten zurück
+    /// Returns the value of the ElsterValue as a string.
+    /// If the value is unknown or invalid, it also returns the raw data.
+    /// The values are formatted in invariant culture, so they can be easily 
+    /// further processed, e.g. under FHEM, i.e. 23.4 instead of 23,4
     /// </summary>
     public override string ToString()
     {
@@ -288,13 +291,13 @@ public class ElsterValue
                 retString.AppendFormat("{0} (0x{0:X4})", elsterValue);
                 break;
             case ElsterValueType.et_dec_val:
-                retString.AppendFormat("{0:F1}", ((double)elsterValue) / 10.0);
+                retString.AppendFormat(CultureInfo.InvariantCulture,"{0:F1}", ((double)elsterValue) / 10.0);
                 break;
             case ElsterValueType.et_cent_val:
-                retString.AppendFormat("{0:F2}", ((double)elsterValue) / 100.0);
+                retString.AppendFormat(CultureInfo.InvariantCulture,"{0:F2}", ((double)elsterValue) / 100.0);
                 break;
             case ElsterValueType.et_mil_val:
-                retString.AppendFormat("{0:F3}", ((double)elsterValue) / 1000.0);
+                retString.AppendFormat(CultureInfo.InvariantCulture,"{0:F3}", ((double)elsterValue) / 1000.0);
                 break;
             case ElsterValueType.et_byte:
                 retString.Append(((sbyte)elsterValue).ToString());

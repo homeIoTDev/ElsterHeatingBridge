@@ -118,7 +118,7 @@ public class MqttAdapter: IDisposable, IMqttService
 
     private void SendReading(string readingName, string value)
     {
-        _logger.LogInformation($"Enqueuing MQTT message to topic '{_config.Topic}/{readingName}' with payload '{value}'...");
+        _logger.LogTrace($"Enqueuing MQTT message to topic '{_config.Topic}/{readingName}' with payload '{value}'...");
         // Initialize the queue if not already done
         _sendingQueue.Enqueue((readingName, value));
         _newSendingQueueElementEvent.Set();

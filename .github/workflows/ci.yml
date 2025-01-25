@@ -39,6 +39,8 @@ jobs:
       id: check_release
       run: |
         if gh release view v1.0.0 > /dev/null 2>&1; then echo "exists=true" >> $GITHUB_ENV; else echo "exists=false" >> $GITHUB_ENV; fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
     - name: Delete Release if it exists
       if: env.exists == 'true'

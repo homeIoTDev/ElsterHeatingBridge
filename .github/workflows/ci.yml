@@ -35,13 +35,19 @@ jobs:
     - name: List published files
       run: ls -R ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/
 
-    - name: Delete latest Release
-      run: gh release delete v1.0.0 --cleanup-tag
+    - name: Check if Release exists
+      id: check_release
+      run: |
+        if gh release view v1.0.0 > /dev/null 2>&1; then echo "exists=true" >> $GITHUB_ENV; else echo "exists=false" >> $GITHUB_ENV; fi
+  
+    - name: Delete Release if it exists
+      if: env.exists == 'true'
+      run: gh release delete v1.0.0 --cleanup-tag --yes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             
     - name: Create GitHub Release
-      run: gh release create v1.0.0 -d 
+      run: gh release create v1.0.0 -p -t "Release latest" 
       id: create_release
 
     - name: Upload Release Assets

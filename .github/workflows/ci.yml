@@ -34,6 +34,10 @@ jobs:
         name: HeatingMqttService-linux-arm
         path: |
             **/bin/Release/net8.0/linux-arm/publish/
+    - name: Delete latest Release
+      run: gh release delete latest --cleanup-tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             
     - name: Create GitHub Release
       id: create_release
@@ -41,9 +45,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        tag_name: latest
         release_name: Release latest
         draft: false
-        prerelease: true
+        prerelease: false
 
     - name: Upload Release Assets
       uses: actions/upload-release-asset@v1

@@ -35,8 +35,9 @@ jobs:
         path: |
             **/bin/Release/net8.0/linux-arm/publish/
 
-    - name: List published files
+    - name: Rename to example.appsettings.json
       run: mv ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/appsettings.json ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/example.appsettings.json
+    - name: List published files
       run: ls -R ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/
 
     - name: Delete latest Release

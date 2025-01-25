@@ -63,8 +63,6 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: |
-                  ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/HeatingMqttService
-                  ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/libSystem.IO.Ports.Native.so
-                  ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/example.appsettings.json
+                  ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/   
         asset_name: HeatingMqttService-linux-arm.zip
         asset_content_type: application/zip

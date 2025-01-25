@@ -2,11 +2,11 @@
 
 Visualisierung der Heizungsanlage. Eine Mischung aus Strom-Abgriff der verschiedenen Pumpen (Warmwasser, Umweltpumpe und Pufferpumpe), die nun mit der neuen Anbindungsart der Heizung über den CAN-Bus ersetzbar ist. Zudem wird hier die Durchschnittstemperatur aller Räume und die Stellwerte der Einzelraumregler angezeigt. Im Diagramm 'TTL AC 10' sind nun die neuen Werte aus dem CAN-Bus zu sehen.
 
-<img src="doc/fhem_heizung_visu.png" width="800">
+<img src="fhem_heizung_visu.png" width="800">
 
 So sieht das MQTT2_DEVICE unter FHEM aus, als Beispiel für die Konfiguration
 
-<img src="doc/fhem_mqtt_device.png" width="800">
+<img src="fhem_mqtt_device.png" width="800">
 
 
 

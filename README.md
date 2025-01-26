@@ -1,5 +1,5 @@
 # Tecalor/Stiebel Eltron Heatpump Bridge
----------------
+=======
 
 ## Beschreibung
 Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wärmepumpe über den CAN-Bus. Folgende Schnittstellen werden unterstützt:
@@ -15,7 +15,6 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 [Installation und Visualisierung in FHEM](doc/fhem.md)
 
 ### Quellen
-----------
 Dieses Programm basiert auf den Arbeiten von:
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)
@@ -149,7 +148,7 @@ In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfigu
 
 |SendCondition|Beschreibung|
 |---|---|
-|OnEveryRead||Bei jedem Lesen, wird ein Wert an die MQTT-Bridge geschickt|
+|OnEveryRead|Bei jedem Lesen, wird ein Wert an die MQTT-Bridge geschickt|
 |OnValueChange| Nur bei Wertänderung, wird ein Wert an die MQTT-Bridge geschickt|
 
 ## Untersuchungen 

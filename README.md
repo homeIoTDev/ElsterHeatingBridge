@@ -1,9 +1,7 @@
 # Tecalor/Stiebel Eltron Heatpump Bridge
-=============================================
-
-## Beschreibung
 ---------------
 
+## Beschreibung
 Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wärmepumpe über den CAN-Bus. Folgende Schnittstellen werden unterstützt:
 
 * USBtin (Version HW10, SW00 - siehe Fischl.de) mit dem Protokoll von LAWICEL CANUSB

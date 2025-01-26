@@ -11,11 +11,12 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 
 <img src="doc/HeatingMqttService_overview.png" width="800">
 
+## FHEM
+[Installation und Visualisierung in FHEM](doc/fhem.md)
+
 ### Quellen
 ----------
-
 Dieses Programm basiert auf den Arbeiten von:
-
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)
 * Radiator
@@ -27,11 +28,8 @@ Die Verwendung des Codes erfolgt auf eigene Gefahr. Es wird keine Gewährleistun
 
 Use of this code is at your own risk. No warranty is given for the correctness or completeness of the software. The author is not liable for any damages that may arise from the use of this software, particularly not for damages to the heat pump. So be careful, winter is coming.
 
-## FHEM
-
-[Installation und Visualisierung in FHEM](doc/fhem.md)
-
 # Testaufbau und Entwicklung
+---------------
 Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
 
 <img src="doc/testsetup.png" width="800">
@@ -39,7 +37,6 @@ Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich
 Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwickelt, um die Vorteile des Extreme Programming in Kombination mit KI-Tools wie Codeium und Copilot zu erproben. Die KI-Tools werden genutzt, um Git, GitHub, VS Code sowie Übersetzungen zwischen Programmiersprachen und die Korrektur von Englisch nach Deutsch (und umgekehrt) zu unterstützen. Eine ausgezeichnete Möglichkeit, moderne Technologien zu integrieren.
 
 ## Vorschläge und offene Aufgaben
-----------------
 
 - [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
 - [x] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
@@ -60,8 +57,6 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [ ] Implementieren der FEK-Funktionen: Setzen der Heizkurve, Raumeinfluss und Heizkuvenfußpunkt(vermutlich unmöglich)
 - [ ] Implementieren der WPM-Funktionen: Auslesen der Temperaturen, Umschaltung auf Sommerbetrieb
 - [ ] Implementieren der Warmwassersteuerung: Temperaturfestlegung für Extra Warmwasser (WE), Zeitpunktfestlegung (Wenn wärmster Zeitpunkt und angeschlossen an Heizungsvorgang)
-
-
 
 ## Telegrammaufbau
 ----------

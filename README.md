@@ -11,13 +11,7 @@ Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wä
 
 Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend als auch schreibend. Die Ergebnisse werden im Speicher des HeatingMqttService gehalten und sofort an einen MQTT-Message-Broker weitergeleitet. Das Wording lehnt sich dabei stark an die FHEM-Wärmepumpen-Implementierung an (siehe auch unten). Durch die MQTT-Anbindung sind auch Integrationen in andere Hausautomatisierungssysteme möglich. Der HeatingMqttService ist ein .NET 8 Linux systemd Service und kann später neben FHEM betrieben werden.
 
-### Testaufbau und Entwicklung
-Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
-
-<img src="doc/testsetup.png" width="800">
-
-Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwickelt, um die Vorteile des Extreme Programming in Kombination mit KI-Tools wie Codeium und Copilot zu erproben. Die KI-Tools werden genutzt, um Git, GitHub, VS Code sowie Übersetzungen zwischen Programmiersprachen und die Korrektur von Englisch nach Deutsch (und umgekehrt) zu unterstützen. Eine ausgezeichnete Möglichkeit, moderne Technologien zu integrieren.
-
+<img src="doc/HeatingMqttService_overview.png" width="800">
 
 ## Quellen
 ----------
@@ -29,6 +23,12 @@ Dieses Programm basiert auf den Arbeiten von:
 * Radiator
 * Robots <https://github.com/robots/Elster/>
 
+### Testaufbau und Entwicklung
+Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
+
+<img src="doc/testsetup.png" width="800">
+
+Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwickelt, um die Vorteile des Extreme Programming in Kombination mit KI-Tools wie Codeium und Copilot zu erproben. Die KI-Tools werden genutzt, um Git, GitHub, VS Code sowie Übersetzungen zwischen Programmiersprachen und die Korrektur von Englisch nach Deutsch (und umgekehrt) zu unterstützen. Eine ausgezeichnete Möglichkeit, moderne Technologien zu integrieren.
 
 ## Telegrammaufbau
 ----------
@@ -68,8 +68,6 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 	sudo journalctl -u HeatingDaemon
 
 angeschaut werden.
-
-
 
 ## Konfiguration
 In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:

@@ -1,6 +1,5 @@
 # Tecalor/Stiebel Eltron Heatpump Bridge
-=======
-
+---------------
 ## Beschreibung
 Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wärmepumpe über den CAN-Bus. Folgende Schnittstellen werden unterstützt:
 
@@ -22,7 +21,6 @@ Dieses Programm basiert auf den Arbeiten von:
 * Robots <https://github.com/robots/Elster/>
   
 ## Warnung
-
 Die Verwendung des Codes erfolgt auf eigene Gefahr. Es wird keine Gewährleistung für die Richtigkeit oder Vollständigkeit der Software übernommen. Der Autor haftet nicht für Schäden, die durch die Verwendung dieser Software entstehen, insbesondere nicht für Schäden an der Wärmepumpe. Also aufpassen, der nächste Winter wird kommen.
 
 Use of this code is at your own risk. No warranty is given for the correctness or completeness of the software. The author is not liable for any damages that may arise from the use of this software, particularly not for damages to the heat pump. So be careful, winter is coming.
@@ -58,12 +56,9 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [ ] Implementieren der Warmwassersteuerung: Temperaturfestlegung für Extra Warmwasser (WE), Zeitpunktfestlegung (Wenn wärmster Zeitpunkt und angeschlossen an Heizungsvorgang)
 
 ## Telegrammaufbau
-----------
-
 <img src="doc/telegram.png" width="800">
 
 ## Installation
--------------
 .net 8.0 installieren 
 ```
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh

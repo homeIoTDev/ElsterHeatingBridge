@@ -13,7 +13,7 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 
 <img src="doc/HeatingMqttService_overview.png" width="800">
 
-## Quellen
+### Quellen
 ----------
 
 Dieses Programm basiert auf den Arbeiten von:
@@ -22,24 +22,53 @@ Dieses Programm basiert auf den Arbeiten von:
 * Immi (THZ-Modul)
 * Radiator
 * Robots <https://github.com/robots/Elster/>
+  
+## Warnung
 
-### Testaufbau und Entwicklung
+Die Verwendung des Codes erfolgt auf eigene Gefahr. Es wird keine Gewährleistung für die Richtigkeit oder Vollständigkeit der Software übernommen. Der Autor haftet nicht für Schäden, die durch die Verwendung dieser Software entstehen, insbesondere nicht für Schäden an der Wärmepumpe. Also aufpassen, der nächste Winter wird kommen.
+
+Use of this code is at your own risk. No warranty is given for the correctness or completeness of the software. The author is not liable for any damages that may arise from the use of this software, particularly not for damages to the heat pump. So be careful, winter is coming.
+
+## FHEM
+
+[Installation und Visualisierung in FHEM](doc/fhem.md)
+
+# Testaufbau und Entwicklung
 Um im Echtbetrieb zu entwickeln, ohne mein FHEM-System zu beschädigen, habe ich die CAN-Bus-Daten an meinen PC weitergeleitet.
 
 <img src="doc/testsetup.png" width="800">
 
 Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwickelt, um die Vorteile des Extreme Programming in Kombination mit KI-Tools wie Codeium und Copilot zu erproben. Die KI-Tools werden genutzt, um Git, GitHub, VS Code sowie Übersetzungen zwischen Programmiersprachen und die Korrektur von Englisch nach Deutsch (und umgekehrt) zu unterstützen. Eine ausgezeichnete Möglichkeit, moderne Technologien zu integrieren.
 
+## Vorschläge und offene Aufgaben
+----------------
+
+- [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
+- [x] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
+- [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
+- [x] Zeitstempel beim Protokollieren
+- [x] Implementieren eines Bus-Scans pro Module / aller Module
+- [x] Implementieren von einer Konfigurationsmöglichkeit, die Readingname, SenderCanID, Funktion oder ElsterValue und Abfragezyklus übernimmt. 
+- [x] Implementation dieser zyklischen Abfragefunktion. Funktionen sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
+- [x] Implementieren der Konfigurationen für MQTT-Ausleitung und zyklisches Abfragen von bestimmten Werten
+- [x] Deployment auf FHEM 
+- [ ] Sammeln aller passiven Werte auf dem Bus
+- [ ] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
+- [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
+- [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
+- [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
+- [ ] Zu prüfen: Werden alle 300 - 500 ms F gesendet um auf Fehler zu prüfen--> Sollte unabhängig vom Bell-Error ermittelt werden.
+- [ ] WP_DHC_Stufe implementieren (Relais)
+- [ ] Implementieren der FEK-Funktionen: Setzen der Heizkurve, Raumeinfluss und Heizkuvenfußpunkt(vermutlich unmöglich)
+- [ ] Implementieren der WPM-Funktionen: Auslesen der Temperaturen, Umschaltung auf Sommerbetrieb
+- [ ] Implementieren der Warmwassersteuerung: Temperaturfestlegung für Extra Warmwasser (WE), Zeitpunktfestlegung (Wenn wärmster Zeitpunkt und angeschlossen an Heizungsvorgang)
+
+
+
 ## Telegrammaufbau
 ----------
 
 <img src="doc/telegram.png" width="800">
-
-## Warnung
-----------
-Die Verwendung des Codes erfolgt auf eigene Gefahr. Es wird keine Gewährleistung für die Richtigkeit oder Vollständigkeit der Software übernommen. Der Autor haftet nicht für Schäden, die durch die Verwendung dieser Software entstehen, insbesondere nicht für Schäden an der Wärmepumpe. Also aufpassen, der nächste Winter wird kommen.
-
-Use of this code is at your own risk. No warranty is given for the correctness or completeness of the software. The author is not liable for any damages that may arise from the use of this software, particularly not for damages to the heat pump. So be careful, winter is coming.
 
 ## Installation
 -------------
@@ -129,33 +158,6 @@ In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfigu
 |---|---|
 |OnEveryRead||Bei jedem Lesen, wird ein Wert an die MQTT-Bridge geschickt|
 |OnValueChange| Nur bei Wertänderung, wird ein Wert an die MQTT-Bridge geschickt|
-
-## Vorschläge und offene Aufgaben
-----------------
-
-- [x] Implementierung des Lesens von Nachrichten auf dem Bus, die passiv gesendet werden
-- [x] Implementieren von Schreiben auf den Bus und Abfragen von bestimmten Elster-Werten
-- [x] ElsterValue aus einem ElsterCanFrame als Eigenschalft zur Verfügung stellen
-- [x] Zeitstempel beim Protokollieren
-- [x] Implementieren eines Bus-Scans pro Module / aller Module
-- [x] Implementieren von einer Konfigurationsmöglichkeit, die Readingname, SenderCanID, Funktion oder ElsterValue und Abfragezyklus übernimmt. 
-- [x] Implementation dieser zyklischen Abfragefunktion. Funktionen sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
-- [x] Implementieren der Konfigurationen für MQTT-Ausleitung und zyklisches Abfragen von bestimmten Werten
-- [x] Deployment auf FHEM 
-- [ ] Sammeln aller passiven Werte auf dem Bus
-- [ ] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
-- [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
-- [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
-- [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
-- [ ] Zu prüfen: Werden alle 300 - 500 ms F gesendet um auf Fehler zu prüfen--> Sollte unabhängig vom Bell-Error ermittelt werden.
-- [ ] WP_DHC_Stufe implementieren (Relais)
-- [ ] Implementieren der FEK-Funktionen: Setzen der Heizkurve, Raumeinfluss und Heizkuvenfußpunkt(vermutlich unmöglich)
-- [ ] Implementieren der WPM-Funktionen: Auslesen der Temperaturen, Umschaltung auf Sommerbetrieb
-- [ ] Implementieren der Warmwassersteuerung: Temperaturfestlegung für Extra Warmwasser (WE), Zeitpunktfestlegung (Wenn wärmster Zeitpunkt und angeschlossen an Heizungsvorgang)
-
-## FHEM
-
-[Installation und Visualisierung in FHEM](doc/fhem.md)
 
 ## Untersuchungen 
 

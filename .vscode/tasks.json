@@ -13,6 +13,14 @@
                     "${workspaceFolder}/.vscode/sigint_HeatingDaemon_service.sh"
                 ],
                 "problemMatcher": []
+            },
+            {
+                "type": "dotnet",
+                "task": "build /home/sme/source/ElsterHeatingBridge/HeatingDaemon/HeatingMqttService/HeatingMqttService.csproj",
+                "file": "/home/sme/source/ElsterHeatingBridge/HeatingDaemon/HeatingMqttService/HeatingMqttService.csproj",
+                "group": "build",
+                "problemMatcher": [],
+                "label": "dotnet: build /home/sme/source/ElsterHeatingBridge/HeatingDaemon/HeatingMqttService/HeatingMqttService.csproj"
             }
         ]
     }

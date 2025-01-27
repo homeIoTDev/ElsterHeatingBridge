@@ -69,7 +69,8 @@ class Program
                 {
                     config.AddCommandLine(args);
                 }
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);                
             })
             .ConfigureServices((hostContext, services) =>
             {

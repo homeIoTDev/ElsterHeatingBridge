@@ -2,3 +2,4 @@
 **/obj/
 *.pm
 *.user
+appsettings.Development.json

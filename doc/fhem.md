@@ -23,7 +23,7 @@ Description=Communication with Tecalor/Stiebel Eltron TTL AC 10 heat pump over C
 After=network.target
 # This file needs to exist in the /etc/systemd/system/ directory
 [Service]
-ExecStart=/home/pi/HeatingMqttService/HeatingMqttService
+ExecStart=/root/HeatingMqttService/HeatingMqttService
 Restart=always
 RestartSec=10
 SyslogIdentifier=HeatingDaemon
@@ -36,10 +36,10 @@ Environment=PATH=/root/.dotnet:$PATH
 WantedBy=multi-user.target
 ```
 
-Script, der den Service auf dem RaspPI aktualisiert, indem er den Service stoppt, die neueste Version herunterlädt und den Service startet. /home/pi/renew_HeatingMqttService
+Script, der den Service auf dem RaspPI aktualisiert, indem er den Service stoppt, die neueste Version herunterlädt und den Service startet. /root/renew_HeatingMqttService
 ```
 # Ins Home-Verzeichnis wechseln
-cd /home/pi
+cd /root
 # Zielverzeichnis erstellen, falls noch nicht vorhanden
 mkdir -p HeatingMqttService
 # Ins Zielverzeichnis wechseln

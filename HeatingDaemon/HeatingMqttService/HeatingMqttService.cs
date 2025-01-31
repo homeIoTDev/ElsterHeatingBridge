@@ -103,6 +103,10 @@ public class HeatingMqttService: IHostedService
                 { 
                     _ac10MqttAdapter.Value.LogAllReadings();
                 } 
+                else if(key == ConsoleKey.P)
+                {
+                    _heatingAdapter.Value.PrintPassiveElsterTelegramList();
+                }
                 else if(key == ConsoleKey.C)
                 {
                     _usbTinCanBusAdapter.Value.SendLineWithoutResponse("C");

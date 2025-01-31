@@ -20,6 +20,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
     private HeatingAdapterConfig                    _heatingAdapterConfig;
     private List<CyclicReadingQueryDto>             _cyclicReadingQueryList = new();
     private ushort                                  _standardSenderCanID = 0x700;
+    private bool                                    _passiveElsterTelegramsEnabled = false;
+    private static readonly Dictionary<(ushort ElsterIndex, uint SenderCanId, uint ReceiverCanId),(long count, ElsterCANFrame frame)> _passiveElsterTelegramList = new();
 
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
                           ICanBusService canBusService,
@@ -51,7 +53,23 @@ public class HeatingAdapter : IDisposable, IHeatingService
         }
 
         if(elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value !=null) {
-          
+
+          //Get count of passive Elster Telegrams 
+          if(_passiveElsterTelegramsEnabled &&
+              elsterFrame.TelegramType != ElsterTelegramType.Read)
+          {
+            var passiveElsterTelegramKey = (elsterFrame.ElsterIndex, elsterFrame.SenderCanId, elsterFrame.ReceiverCanId);
+            if(_passiveElsterTelegramList.TryGetValue(passiveElsterTelegramKey, out var passiveElsterTelegram)==true)
+            {
+              var passiveElsterTelegramNew = (passiveElsterTelegram.count + 1, elsterFrame);
+              _passiveElsterTelegramList[passiveElsterTelegramKey] = passiveElsterTelegramNew;
+            }
+            else
+            { 
+              _passiveElsterTelegramList.Add(passiveElsterTelegramKey, (1, elsterFrame));
+            }
+          } // Nur Telegramme mit Werten
+
           foreach(CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
           {
             if ( cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex )
@@ -129,7 +147,29 @@ public class HeatingAdapter : IDisposable, IHeatingService
           }
           Thread.Sleep(1000);  // the minimum loop time of 1 second  
         }
+    }
 
+    
+    public void PrintPassiveElsterTelegramList()
+    {
+      if(_passiveElsterTelegramsEnabled == false)
+      {
+        _passiveElsterTelegramsEnabled = true;
+        _logger.LogInformation("Collecting of passive Elster Telegrams enabled. Press 'P' to disable.");
+      }
+      else
+      {
+        _passiveElsterTelegramsEnabled = false;
+        StringBuilder logString = new StringBuilder();
+        logString.AppendLine("Passive Elster Telegrams:");
+        var sortedList = _passiveElsterTelegramList.OrderByDescending(x => x.Value.count).ToList();
+        foreach (var item in sortedList)
+        {
+          logString.AppendLine($"  {item.Value.count}x  {item.Value.frame.ToString()}");
+        }
+        _logger.LogInformation(logString.ToString());
+
+      }
     }
 
     /// <summary>
@@ -378,4 +418,5 @@ public class HeatingAdapter : IDisposable, IHeatingService
         _logger.LogInformation("HeatingAdapter disposed.");
         // Beende den Service
     }
+
 }

@@ -44,7 +44,7 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Implementation dieser zyklischen Abfragefunktion. Funktionen sind ggf. ausgewertete ElsterValue-Werte in Text. Ohne zyklische Abfragen werden passive Telegramme ausgewertet, also die, die so oder so gesendet werden.
 - [x] Implementieren der Konfigurationen für MQTT-Ausleitung und zyklisches Abfragen von bestimmten Werten
 - [x] Deployment auf FHEM 
-- [ ] Sammeln aller passiven Werte auf dem Bus
+- [x] Sammeln aller passiven Werte auf dem Bus
 - [x] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805

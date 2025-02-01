@@ -279,8 +279,8 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
                     if ( line[0] == 'V')  // old version of usbtin use Vxx und vyy in two lines
                     {
                         SetCanAdapterResponse(CanAdapterResponse.OK);
-                        _mqttService.SetReading("HW_Version", line.Substring(1,2));
-                        _mqttService.SetReading("SW_Version", line.Substring(3,2));
+                        _mqttService.SetReading("CAN_HW_Version", line.Substring(1,2));
+                        _mqttService.SetReading("CAN_SW_Version", line.Substring(3,2));
                     }
                 }
                 else if(line.Length>0)

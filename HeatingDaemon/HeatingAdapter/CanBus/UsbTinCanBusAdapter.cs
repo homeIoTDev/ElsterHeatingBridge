@@ -229,7 +229,17 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
                 var lineBuilder = new StringBuilder();
                 while (_serialPort.IsOpen)
                 {
-                    int c = _serialPort.ReadChar();
+                    int c;
+                    try
+                    {
+                        c = _serialPort.ReadChar();
+                    } 
+                    catch ( ObjectDisposedException ) 
+                    {
+                        //serial port closed
+                         _logger.LogInformation($"Reading from serial port {_config.PortName} stopped");
+                        return;
+                    }
                     if (c == 13)
                     {
                         break; //line complete

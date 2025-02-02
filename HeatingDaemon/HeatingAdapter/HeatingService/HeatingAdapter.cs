@@ -266,6 +266,34 @@ public class HeatingAdapter : IDisposable, IHeatingService
           }
     }
 
+    
+    public void CanScanElsterIndex(ElsterModule senderCanID, ElsterModule receiverCanID, ushort? elsterIndex, ushort? elsterValue)
+    {
+      if(elsterIndex!=null&&elsterValue!=null)
+      {
+        //Write Elster Value
+        //bool ret = WriteElsterValue((ushort)senderCanID, (ushort)receiverCanID, elsterIndex, elsterValue);
+      }
+      else if( elsterIndex!=null) 
+      {
+        //Read Elster Value
+        if(RequestElsterValue((ushort)senderCanID, (ushort)receiverCanID, (ushort)elsterIndex, out ElsterValue? retValue))
+        {
+          _logger.LogInformation($"------------------------------------------");  
+          _logger.LogInformation($"Read Elster Value '{retValue?.ToString()}'");  
+          _logger.LogInformation($"------------------------------------------"); 
+        } 
+        else
+        {
+          _logger.LogInformation($"Read Elster Value failed");  
+        }
+      }
+      else
+      {
+        //Read all Elster Values on receiverCanId
+      }
+    }
+
     /// <summary>
     /// Requests multiple telegrams for one elster value. The function assumes that the first
     /// value has already been received and is in <paramref name="elsterValue"/>.

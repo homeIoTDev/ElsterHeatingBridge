@@ -163,13 +163,6 @@ public class HeatingMqttService: IHostedService
                 {
                     _usbTinCanBusAdapter.Value.Reset();
                 }
-                else if(key == ConsoleKey.S)
-                {   // Tages Ertrag in kwh abfragen an HeatingModule 
-                    ElsterValue? elsterValue;
-                    _heatingAdapter.Value.RequestElsterValue(0xFFFF, 0x0500, 0x092f, out elsterValue);
-                    //von Stadard CanID (0x700) an den Mixer(0x601) senden  0x601, 0x0199(SOFTWARE_NUMMER)
-                    //_heatingAdapter.Value.RequestElsterValue(0xFFFF,0x601, 0x019a, out elsterValue);
-                }
                 else if(key == ConsoleKey.M)
                 { 
                     _heatingAdapter.Value.ScanElsterModules();
@@ -241,6 +234,8 @@ public class HeatingMqttService: IHostedService
             _logger.LogError("CanBus is not open. Can't execute can_scan");
             return;
         }
+
+        _heatingAdapter.Value.CanScanElsterIndex(senderCanID, receiverCanID.Value, elsterIndex, elsterValue);
     }
 
     private void ExecuteMsgScan(string msg_scan_value)
@@ -277,7 +272,6 @@ public class HeatingMqttService: IHostedService
         _heatingAdapter.Value.PrintPassiveElsterTelegramList();
  
     }
-
 
     private void ExecuteModulesScan(string modules_scan_value)
     {
@@ -318,7 +312,6 @@ public class HeatingMqttService: IHostedService
         }
         return _usbTinCanBusAdapter.Value.IsCanBusOpen;
     }
-
 
     private void LogMsgScanSyntax(string? specificErrorMessage)
     {

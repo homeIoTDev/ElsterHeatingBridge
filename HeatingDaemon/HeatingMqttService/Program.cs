@@ -33,6 +33,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HeatingDaemon;
@@ -59,7 +60,12 @@ class Program
                 }
                 else
                 {
-                    logging.AddConsole();
+                    logging.AddSimpleConsole(options =>
+                    {
+                        //options.IncludeScopes = true;                        
+                        options.SingleLine = true;
+                        //options.TimestampFormat = "HH:mm:ss ";
+                    });
                 }                   
             })
             .ConfigureAppConfiguration((hostingContext, config) =>

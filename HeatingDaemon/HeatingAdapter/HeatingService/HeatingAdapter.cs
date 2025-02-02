@@ -242,7 +242,13 @@ public class HeatingAdapter : IDisposable, IHeatingService
                   break;
               }
           }
-          _logger.LogInformation(logString.ToString());
+          //Log all found modules in old style (and not in one line, becouse the console logger does not support that)
+          var lines = logString.ToString().Split('\n');
+          foreach (var line in lines)
+          {
+            _logger.LogInformation(line);
+          }
+
           _logger.LogInformation("Scanning for Elster modules finished");
           foreach(var module in Modules)
           {

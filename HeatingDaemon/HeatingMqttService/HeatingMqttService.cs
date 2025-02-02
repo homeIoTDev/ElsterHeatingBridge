@@ -92,12 +92,21 @@ public class HeatingMqttService: IHostedService
 
     private void ProcessConsoleInput(CancellationToken token)
     {
-        var can_scanValue = _configuration.GetValue<string>("can_scan");// where the argument is --can_scan=301.000b
-        if(can_scanValue != null)
+        var canScanValue = _configuration.GetValue<string>("can_scan");
+        if (canScanValue != null)
         {
-            ExecuteCanScan(can_scanValue);
-            _logger.LogInformation("Programm wird beendet...");
-            _cts.Cancel();
+            ExecuteCanScan(canScanValue);
+        }
+
+        var moduleScanValue = _configuration.GetValue<string>("modules_scan");
+        if (moduleScanValue != null)
+        {
+            ExecuteModulesScan(moduleScanValue);
+        }
+
+        if (canScanValue != null || moduleScanValue != null)
+        {
+            _logger.LogInformation("The program will be stopped after execution of programm parameters like can_scan...");
             _applicationLifetime.StopApplication();
         }
 
@@ -221,24 +230,70 @@ public class HeatingMqttService: IHostedService
         }
 
         // --==Wait until CanBus is open, or can_scan is skipped==--
-        int counter = 0;
-        while (!_usbTinCanBusAdapter.Value.IsCanBusOpen && counter < 10)
+        if(!WaitUntilCanBusIsOpen())
         {
-            Thread.Sleep(1000);
-            counter++;
-        }
-        if (!_usbTinCanBusAdapter.Value.IsCanBusOpen)
-        {
-            _logger.LogInformation("CanBus not open after 10 seconds, skipping can_scan");
+            _logger.LogError("CanBus is not open. Can't execute can_scan");
             return;
         }
     }
 
-    private void LogCanSendSyntax(string specificErrorMessage)
+    private void ExecuteModulesScan(string modules_scan_value)
+    {
+        _logger.LogInformation($"Evaluate parameter modules_scan '{modules_scan_value}'...");
+        // --==if Systemd Service is running, then skip can_scan==--       
+        if(SystemdHelpers.IsSystemdService()==true)
+        {
+            _logger.LogInformation("In Systemd Service, skipping parameter module_scan");
+            return;
+        }
+      
+        // --==Check any parameters and cast them to type safe values==--    
+        ElsterModule    senderCanID     = ElsterUserInputParser.ParseSenderElsterModule(modules_scan_value);
+
+        // --==Wait until CanBus is open, or can_scan is skipped==--
+        if(!WaitUntilCanBusIsOpen())
+        {
+            _logger.LogError("CanBus is not open. Can't execute can_scan");
+            return;
+        }
+
+        _heatingAdapter.Value.ScanElsterModules((ushort)senderCanID);
+    }
+
+    private bool WaitUntilCanBusIsOpen(int sec = 30)
+    {
+        _logger.LogInformation($"Waiting up to {sec} seconds for Mqtt-Broker and CanBus to become available...");
+        int counter = 0;
+        while (!_usbTinCanBusAdapter.Value.IsCanBusOpen && counter < sec)
+        {
+            Thread.Sleep(1000);
+            counter++;
+        }
+        return _usbTinCanBusAdapter.Value.IsCanBusOpen;
+    }
+
+    private void LogModuleScanSyntax(string? specificErrorMessage)
     {
         StringBuilder logMessage = new StringBuilder();
-        logMessage.Append("Wrong syntax in parameter can_scan:");
-        logMessage.AppendLine(specificErrorMessage);
+
+        if(specificErrorMessage != null) logMessage.AppendLine($"Wrong syntax in parameter module_scan:{specificErrorMessage}");
+        logMessage.AppendLine("");
+        logMessage.AppendLine("Syntax:");
+        logMessage.AppendLine("HeatingMqttService --module_scan=[SenderCanID]");
+        logMessage.AppendLine("");
+        logMessage.AppendLine("   SenderCanID: optional, default is standard CanId from appconfig. Hex-Value or module name (e.g. 700 or ExternalDevice)");
+        logMessage.AppendLine("");
+        logMessage.AppendLine("Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)");
+        logMessage.AppendLine("OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)");
+        logMessage.AppendLine("OR       HeatingMqttService --module_scan=ExternalDevice  (use 700 as sender can id to scan all modules)");
+
+        _logger.LogError(logMessage.ToString());
+    }
+
+    private void LogCanSendSyntax(string? specificErrorMessage)
+    {
+        StringBuilder logMessage = new StringBuilder();
+        if(specificErrorMessage != null) logMessage.AppendLine($"Wrong syntax in parameter can_scan:{specificErrorMessage}");
         logMessage.AppendLine("");
         logMessage.AppendLine("Syntax:");
         logMessage.AppendLine("HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]");

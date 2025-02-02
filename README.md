@@ -46,7 +46,7 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Deployment auf FHEM 
 - [x] Sammeln aller passiven Werte auf dem Bus
 - [x] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
-- [ ] module_scan als Parameter implementieren und in readme dokumentieren
+- [x] module_scan als Parameter implementieren und in readme dokumentieren
 - [ ] Passive Telegramme per Parameter für einen bestimmten Zeitraum starten und in readme dokumentieren
 - [ ] Can_Scan Module auf gültige Elster-Werte
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
@@ -93,11 +93,46 @@ Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon s
 Der Parameter module_scan ist zum scannen der vorhandenen Module der Heizungsanlage
 
 ```
-HeatingMqttService --module_scan=[SenderCanID] 
+HeatingMqttService --module_scan=[SenderCanID]"
+
+   SenderCanID: optional, default is standard CanId from appconfig. Hex-Value or module name (e.g. 700 or ExternalDevice
+
+Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)
+OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)
+OR       HeatingMqttService --module_scan=ExternalDevice  (use 700 as sender can id to scan all modules)
+
+Ergebnis:
+...
+info: HeatingDaemon.HeatingAdapter[0] scan on CAN-id: 700
+info: HeatingDaemon.HeatingAdapter[0] list of valid can id's:
+info: HeatingDaemon.HeatingAdapter[0]
+info: HeatingDaemon.HeatingAdapter[0]
+info: HeatingDaemon.HeatingAdapter[0]   000 (C306 = 195-06)
+info: HeatingDaemon.HeatingAdapter[0]   100 (8000 = 392-03)
+info: HeatingDaemon.HeatingAdapter[0]   180 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]   301 (C306 = 195-06)
+info: HeatingDaemon.HeatingAdapter[0]   302 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]   480 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]   500 (4310 = 67-16)
+info: HeatingDaemon.HeatingAdapter[0]   601 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]   602 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]   680 (8000 = 128-00)
+info: HeatingDaemon.HeatingAdapter[0]
+info: HeatingDaemon.HeatingAdapter[0] Scanning for Elster modules finished
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:          Direct (000) = Device-ID:   C306 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:     FES_COMFORT (100) = Device-ID:   8000 | SW-Nr: 392    | SW-Ver: 3
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:          Boiler (180) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:   RemoteControl (301) = Device-ID:   C306 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:  RemoteControl2 (302) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:         Manager (480) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:   HeatingModule (500) = Device-ID:   4310 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:           Mixer (601) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:          Mixer2 (602) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
+info: HeatingDaemon.HeatingAdapter[0] Found Elster module:     ComfortSoft (680) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
 ```
 
-Mit dem Parameter can_scan können die einzelnen Module der Heizungsanalge abgefragt werden, um zu ermitteln auf welche
-elster-Index werte diese reagiert:
+Mit dem Parameter can_scan können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
+um zu ermitteln auf welche Elster-Index-Werte diese reagiert.
 
 ```
 HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]

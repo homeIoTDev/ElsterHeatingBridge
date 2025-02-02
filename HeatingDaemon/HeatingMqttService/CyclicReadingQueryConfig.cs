@@ -1,4 +1,5 @@
 using System.Globalization;
+using HeatingDaemon.ElsterProtocol;
 namespace HeatingDaemon;
 
 /// <summary>
@@ -83,58 +84,25 @@ public class CyclicReadingQueryConfig
             operation = OperationType.GetElsterValue;
         }
 
-        ElsterModule senderCanID;
-        ushort canId;
-        if (string.IsNullOrWhiteSpace(this.SenderCanID))
-        {
-            senderCanID = (ElsterModule)0xFFF;  // 0xFFF ist ungültig und wird beim Senden durch die Standard-CAN-ID ersetzt 
-        }
-        else if (ushort.TryParse(this.SenderCanID.Replace("0x", ""), NumberStyles.HexNumber, null, out canId))
-        {
-            senderCanID = (ElsterModule)canId;
-        } 
-        else if (Enum.TryParse<ElsterModule>(this.SenderCanID, out var elsterModule))
-        {
-            senderCanID = elsterModule;
-        }
-        else // Weder ElsterModule-Name noch eine Hexzahl, dann Standard-CAN-ID
-        {
-            senderCanID = (ElsterModule)0xFFF;  // 0xFFF ist ungültig und wird beim Senden durch die Standard-CAN-ID ersetzt 
-        }
+        ElsterModule senderCanID = ElsterUserInputParser.ParseSenderElsterModule(this.SenderCanID);
 
         ElsterModule receiverCanID;
-        if (ushort.TryParse(this.ReceiverCanID.Replace("0x", ""), NumberStyles.HexNumber, null, out canId))
-        {
-            receiverCanID = (ElsterModule)canId;
-        } 
-        else if (Enum.TryParse<ElsterModule>(this.ReceiverCanID, out var elsterModule))
-        {
-            receiverCanID = elsterModule;
-        }
-        else // Weder ElsterModule-Name noch eine Hexzahl, dann geht es nicht
+        var receiverResult = ElsterUserInputParser.ParseReceiverElsterModule(this.ReceiverCanID);
+        if (receiverResult == null)
         {
             return null;
         }
+        receiverCanID = receiverResult.Value;
 
         ushort elsterIndex = 0;
         if(operation == OperationType.GetElsterValue)
         {
-            if(string.IsNullOrWhiteSpace(this.ElsterIndex) )
+            var elsterIndexResult = ElsterUserInputParser.ParseElsterIndex(this.ElsterIndex);
+            if (elsterIndexResult == null)
             {
                 return null;
             }
-            else if (ushort.TryParse(this.ElsterIndex.Replace("0x", ""), NumberStyles.HexNumber, null, out var elsterIndexHex))
-            {
-                elsterIndex = elsterIndexHex;
-            } 
-            else if (KElsterTable.ElsterTabIndexName.TryGetValue(this.ElsterIndex, out var elsterIndexName))
-            {
-                elsterIndex = elsterIndexName;
-            }
-            else // Weder Elster-Index-Name noch eine Hexzahl, dann geht es nicht
-            {
-                return null;
-            }
+            elsterIndex = elsterIndexResult.Value;
         }
 
         return new CyclicReadingQueryDto ( this.ReadingName)

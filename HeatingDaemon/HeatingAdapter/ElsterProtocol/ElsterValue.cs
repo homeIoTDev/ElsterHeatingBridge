@@ -313,7 +313,7 @@ public class ElsterValue
                         retString.Append("off");
                     }
                     else {
-                        retString.Append("?:et_bool");
+                        retString.Append($"0x{(ushort)elsterValue:X4}?:et_bool");
                     }
                 }
                 break;
@@ -328,7 +328,7 @@ public class ElsterValue
                         retString.Append("off");
                     }
                     else {
-                        retString.Append("?:et_little_bool");
+                        retString.Append($"0x{(ushort)elsterValue:X4} ?:et_little_bool");
                     }
                 }
                 break;

@@ -46,6 +46,9 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Deployment auf FHEM 
 - [x] Sammeln aller passiven Werte auf dem Bus
 - [x] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
+- [ ] module_scan als Parameter implementieren und in readme dokumentieren
+- [ ] Passive Telegramme per Parameter für einen bestimmten Zeitraum starten und in readme dokumentieren
+- [ ] Can_Scan Module auf gültige Elster-Werte
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
 - [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
@@ -84,6 +87,33 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 	sudo journalctl -u HeatingDaemon
 
 angeschaut werden.
+
+Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon sehr nützlich. Dabei wird nicht der Daemon gestartet, sondern das Programm HeatingMqttService direkt. Dieses beendet sich auch, nachdem die Parameter verarbeitet wurden. Die Konfiguration aus der appconfig.json ist auch bei den Parametern wirksam, z.B. die Konfiguration für den standard sender can id.
+
+Der Parameter module_scan ist zum scannen der vorhandenen Module der Heizungsanlage
+
+```
+HeatingMqttService --module_scan=[SenderCanID] 
+```
+
+Mit dem Parameter can_scan können die einzelnen Module der Heizungsanalge abgefragt werden, um zu ermitteln auf welche
+elster-Index werte diese reagiert:
+
+```
+HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]
+
+   SenderCanID: optional, default is standard CanId from appconfig. Hex-Value or module name (e.g. 700 or ExternalDevice)
+   ReceiverCanID: mandatory, hex-Value or module name (e.g. 301 or RemoteControl)
+   ElsterIndex: optional to read or write a single value. Hex-Value or elster index name (e.g. 000b or GERAETE_ID)
+   NewElsterValue: optional to write a single value. Hex-Value (e.g. 0f00)
+
+Example: HeatingMqttService --can_scan=180               (scan all elster indices from 0000 to 1fff)
+OR       HeatingMqttService --can_scan=700 180           (use 700 as sender can id to scan all elster indices
+OR       HeatingMqttService --can_scan=700 180.0126      (read minutes at elster index 0126)
+OR       HeatingMqttService --can_scan=700 180.0126.0f00 (set minutes to 15)
+OR       HeatingMqttService --can_scan=700 Boiler.MINUTE (read minutes at elster index 0126)
+```
+
 
 ## Konfiguration
 In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:

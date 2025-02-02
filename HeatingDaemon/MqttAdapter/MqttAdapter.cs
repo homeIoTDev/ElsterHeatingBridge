@@ -107,13 +107,12 @@ public class MqttAdapter: IDisposable, IMqttService
     }
     public void LogAllReadings()
     {
-        StringBuilder logMessage = new StringBuilder();
         foreach (var item in _readings)
         {
-            logMessage.AppendLine($"Reading: {item.Key} = {item.Value}");
+           _logger.LogInformation($"Reading: {item.Key} = {item.Value}");
         }
-        logMessage.AppendLine($"Current Time: {DateTime.Now}");
-        _logger.LogInformation(logMessage.ToString());
+        _logger.LogInformation($"Current Time: {DateTime.Now}");
+
     }
 
     private void SendReading(string readingName, string value)

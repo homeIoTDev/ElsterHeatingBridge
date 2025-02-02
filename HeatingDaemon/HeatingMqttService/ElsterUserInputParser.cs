@@ -1,4 +1,5 @@
 using System;
+using System.Xml;
 using System.Globalization;
 
 namespace HeatingDaemon.ElsterProtocol;
@@ -121,5 +122,25 @@ public class ElsterUserInputParser
             senderCanID = (ElsterModule)0xFFF;  // 0xFFF ist ungültig und wird beim Senden durch die Standard-CAN-ID ersetzt 
         }
         return senderCanID;
+    }
+
+    /// <summary>
+    /// Parses an ISO 8601 duration string into a TimeSpan structure.
+    /// </summary>
+    /// <param name="msg_scan_value">The string to parse, which must be a valid ISO 8601 duration string.</param>
+    /// <param name="duration">The parsed TimeSpan structure if parsing succeeds; null if parsing fails.</param>
+    /// <returns>true if parsing succeeds; false if parsing fails.</returns>
+    internal static bool ParseISO8601Timespan(string msg_scan_value, out TimeSpan? duration)
+    {
+        duration = null;
+        try 
+        {
+            duration = XmlConvert.ToTimeSpan(msg_scan_value);
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }

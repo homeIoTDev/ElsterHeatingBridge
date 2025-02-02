@@ -150,6 +150,11 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
     
+    /// <summary>
+    /// Enables or disables the collection of passive Elster Telegrams. 
+    /// If the collection is enabled, the method prints the list of collected passive Elster Telegrams, 
+    /// sorted by the count of the telegram in descending order.
+    /// </summary>
     public void PrintPassiveElsterTelegramList()
     {
       if(_passiveElsterTelegramsEnabled == false)
@@ -160,14 +165,12 @@ public class HeatingAdapter : IDisposable, IHeatingService
       else
       {
         _passiveElsterTelegramsEnabled = false;
-        StringBuilder logString = new StringBuilder();
-        logString.AppendLine("Passive Elster Telegrams:");
+        _logger.LogInformation("Passive Elster Telegrams:");
         var sortedList = _passiveElsterTelegramList.OrderByDescending(x => x.Value.count).ToList();
         foreach (var item in sortedList)
         {
-          logString.AppendLine($"  {item.Value.count}x  {item.Value.frame.ToString()}");
+          _logger.LogInformation($"  {item.Value.count}x  {item.Value.frame.ToString()}");
         }
-        _logger.LogInformation(logString.ToString());
 
       }
     }

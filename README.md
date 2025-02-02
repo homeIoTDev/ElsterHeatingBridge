@@ -47,7 +47,7 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Sammeln aller passiven Werte auf dem Bus
 - [x] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
 - [x] module_scan als Parameter implementieren und in readme dokumentieren
-- [ ] Passive Telegramme per Parameter für einen bestimmten Zeitraum starten und in readme dokumentieren
+- [x] Passive Telegramme per Parameter für einen bestimmten Zeitraum starten und in readme dokumentieren
 - [ ] Can_Scan Module auf gültige Elster-Werte
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
@@ -88,14 +88,13 @@ kann der Service aktiviert und gestartet werden. Log-Daten können mit dem Befeh
 
 angeschaut werden.
 
-Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon sehr nützlich. Dabei wird nicht der Daemon gestartet, sondern das Programm HeatingMqttService direkt. Dieses beendet sich auch, nachdem die Parameter verarbeitet wurden. Die Konfiguration aus der appconfig.json ist auch bei den Parametern wirksam, z.B. die Konfiguration für den standard sender can id.
+Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon sehr nützlich. Dabei wird nicht der Daemon gestartet, sondern das Programm HeatingMqttService direkt. Dieses beendet sich auch, nachdem die Parameter verarbeitet wurden. Die Konfiguration aus der appsettings.json ist auch bei den Parametern wirksam, z.B. die Konfiguration für den standard sender can id.
 
-Der Parameter module_scan ist zum scannen der vorhandenen Module der Heizungsanlage
-
+Der Parameter `module_scan` dient zum Scannen der verfügbaren Module der Heizungsanlage:
 ```
-HeatingMqttService --module_scan=[SenderCanID]"
+HeatingMqttService --module_scan=[SenderCanID]
 
-   SenderCanID: optional, default is standard CanId from appconfig. Hex-Value or module name (e.g. 700 or ExternalDevice
+   SenderCanID: optional, default is standard CanId from appsettings.json. Hex-Value or module name (e.g. 700 or ExternalDevice
 
 Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)
 OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)
@@ -131,13 +130,55 @@ info: HeatingDaemon.HeatingAdapter[0] Found Elster module:          Mixer2 (602)
 info: HeatingDaemon.HeatingAdapter[0] Found Elster module:     ComfortSoft (680) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
 ```
 
+
+Mit dem Parameter `msg_scan` können alle passiven CAN-Telegramme, also Telegramme die permanent zwischen den einzelnen Modulen der Heizungsanlage gesendet werden,
+gesammelt und am Ende mit ihrer Häufigkeit protokolliert werden. Diese Telegramme können auch über den MQTT-Broker ausgeleitet werden, ohne den CAN-Bus mit
+weiteren Anfragen zu belasten. Stattdessen können diese Telegramme mit dem ScheduleType `Passive` in der appsettings.json angegeben werden. Um alle passiven Telegramme zu erfassen,
+muss eine bestimmte Zeit lang gesammelt werden, standardmäßig 10 Stunden, was aber auch per Parameter geändert werden kann.
+
+```
+Syntax:
+HeatingMqttService --msg_scan=[timespan]
+
+   timespan: optional, collection time span in ISO 8601 format (e.g. PT10h)
+
+Example: HeatingMqttService --msg_scan=PT10h        (collect all telegrams with an elster value for 10 hours)
+OR       HeatingMqttService --msg_scan=             (collect all telegrams with an elster value for 10 hours)
+
+Ergebnis:
+info: HeatingDaemon.HeatingAdapter[0] Passive Elster Telegrams:
+info: HeatingDaemon.HeatingAdapter[0]   30x  RemoteControl ->Write on ComfortSoft FEHLERMELDUNG 20805 (0x5145)
+info: HeatingDaemon.HeatingAdapter[0]   25x  RemoteControl ->Respond on ExternalDevice RAUMSOLLTEMP_I 19.9
+info: HeatingDaemon.HeatingAdapter[0]   24x  RemoteControl ->Respond on ExternalDevice RAUMSOLLTEMP_NACHT 18.0
+info: HeatingDaemon.HeatingAdapter[0]   6x  Boiler ->Write on HeatingModule_Broadcast AUSSENTEMP 4.2
+info: HeatingDaemon.HeatingAdapter[0]   6x  Boiler ->Write on HeatingModule_Broadcast HILFSKESSELSOLL 23.7
+info: HeatingDaemon.HeatingAdapter[0]   3x  HeatingModule ->Respond on Manager SOFTWARE_NUMMER 67 (0x0043)
+info: HeatingDaemon.HeatingAdapter[0]   3x  HeatingModule ->Respond on Manager WPVORLAUFIST 24.4
+info: HeatingDaemon.HeatingAdapter[0]   3x  Manager ->Write on HeatingModule HEIZSYSTEMTEMP_GEWICHTET 220 (0x00DC)
+info: HeatingDaemon.HeatingAdapter[0]   3x  HeatingModule ->Respond on Manager RUECKLAUFISTTEMP 19.0
+info: HeatingDaemon.HeatingAdapter[0]   3x  Manager ->Write on HeatingModule INTEGRAL_REGELABWEICHUNG_RELATIV 0 (0x0000)
+info: HeatingDaemon.HeatingAdapter[0]   3x  HeatingModule ->Respond on Manager VERDICHTER 0.8
+info: HeatingDaemon.HeatingAdapter[0]   3x  Boiler ->Respond on FES_COMFORT RUECKLAUFISTTEMP 22.0
+info: HeatingDaemon.HeatingAdapter[0]   3x  Manager ->Write on HeatingModule SPEICHERBEDARF 0 (0x0000)
+info: HeatingDaemon.HeatingAdapter[0]   2x  RemoteControl ->Respond on ExternalDevice PROGRAMMSCHALTER Tagbetrieb
+info: HeatingDaemon.HeatingAdapter[0]   2x  FES_COMFORT ->Respond on ExternalDevice PROGRAMMSCHALTER Absenkbetrieb
+info: HeatingDaemon.HeatingAdapter[0]   2x  Boiler ->Respond on FES_COMFORT AUSSENTEMP 4.2
+info: HeatingDaemon.HeatingAdapter[0]   2x  Boiler ->Respond on FES_COMFORT SPEICHERISTTEMP 46.8
+info: HeatingDaemon.HeatingAdapter[0]   1x  RemoteControl ->Respond on ExternalDevice SOFTWARE_NUMMER 195 (0x00C3)
+info: HeatingDaemon.HeatingAdapter[0]   1x  RemoteControl ->Respond on ExternalDevice SOFTWARE_VERSION 6 (0x0006)
+info: HeatingDaemon.HeatingAdapter[0]   1x  RemoteControl ->Write on Mixer FEUCHTE 40.8
+info: HeatingDaemon.HeatingAdapter[0]   1x  RemoteControl ->Write on Mixer RAUMISTTEMP 20.0
+info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Respond on RemoteControl GERAETE_ID 128-00
+info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Write on RemoteControl_Broadcast MAX_HYSTERESE 0
+```
+
 Mit dem Parameter can_scan können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
 um zu ermitteln auf welche Elster-Index-Werte diese reagiert.
 
 ```
 HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]
 
-   SenderCanID: optional, default is standard CanId from appconfig. Hex-Value or module name (e.g. 700 or ExternalDevice)
+   SenderCanID: optional, default is standard CanId from appsettings.json. Hex-Value or module name (e.g. 700 or ExternalDevice)
    ReceiverCanID: mandatory, hex-Value or module name (e.g. 301 or RemoteControl)
    ElsterIndex: optional to read or write a single value. Hex-Value or elster index name (e.g. 000b or GERAETE_ID)
    NewElsterValue: optional to write a single value. Hex-Value (e.g. 0f00)

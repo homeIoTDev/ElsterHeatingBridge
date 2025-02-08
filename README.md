@@ -90,6 +90,7 @@ angeschaut werden.
 
 Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon sehr nützlich. Dabei wird nicht der Daemon gestartet, sondern das Programm HeatingMqttService direkt. Dieses beendet sich auch, nachdem die Parameter verarbeitet wurden. Die Konfiguration aus der appsettings.json ist auch bei den Parametern wirksam, z.B. die Konfiguration für den standard sender can id.
 
+
 Der Parameter `module_scan` dient zum Scannen der verfügbaren Module der Heizungsanlage:
 ```
 HeatingMqttService --module_scan=[SenderCanID]
@@ -99,9 +100,10 @@ HeatingMqttService --module_scan=[SenderCanID]
 Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)
 OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)
 OR       HeatingMqttService --module_scan=ExternalDevice  (use 700 as sender can id to scan all modules)
+```
+<details><summary>Ausgabe von module_scan</summary>
 
-Ergebnis:
-...
+```
 info: HeatingDaemon.HeatingAdapter[0] scan on CAN-id: 700
 info: HeatingDaemon.HeatingAdapter[0] list of valid can id's:
 info: HeatingDaemon.HeatingAdapter[0]
@@ -129,6 +131,8 @@ info: HeatingDaemon.HeatingAdapter[0] Found Elster module:           Mixer (601)
 info: HeatingDaemon.HeatingAdapter[0] Found Elster module:          Mixer2 (602) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
 info: HeatingDaemon.HeatingAdapter[0] Found Elster module:     ComfortSoft (680) = Device-ID:   8000 | SW-Nr: N/A    | SW-Ver: N/A
 ```
+</details>
+
 
 
 Mit dem Parameter `msg_scan` können alle passiven CAN-Telegramme, also Telegramme die permanent zwischen den einzelnen Modulen der Heizungsanlage gesendet werden,
@@ -145,7 +149,10 @@ HeatingMqttService --msg_scan=[timespan]
 Example: HeatingMqttService --msg_scan=PT10h        (collect all telegrams with an elster value for 10 hours)
 OR       HeatingMqttService --msg_scan=             (collect all telegrams with an elster value for 10 hours)
 
-Ergebnis:
+```
+<details><summary>Ausgabe von module_scan</summary>
+
+```
 info: HeatingDaemon.HeatingAdapter[0] Passive Elster Telegrams:
 info: HeatingDaemon.HeatingAdapter[0]   30x  RemoteControl ->Write on ComfortSoft FEHLERMELDUNG 20805 (0x5145)
 info: HeatingDaemon.HeatingAdapter[0]   25x  RemoteControl ->Respond on ExternalDevice RAUMSOLLTEMP_I 19.9
@@ -171,8 +178,10 @@ info: HeatingDaemon.HeatingAdapter[0]   1x  RemoteControl ->Write on Mixer RAUMI
 info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Respond on RemoteControl GERAETE_ID 128-00
 info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Write on RemoteControl_Broadcast MAX_HYSTERESE 0
 ```
+</details>
 
-Mit dem Parameter can_scan können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
+
+Mit dem Parameter `can_scan` können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
 um zu ermitteln auf welche Elster-Index-Werte diese reagiert.
 
 ```

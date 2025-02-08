@@ -269,10 +269,13 @@ public class HeatingAdapter : IDisposable, IHeatingService
     
     public void CanScanElsterIndex(ElsterModule senderCanID, ElsterModule receiverCanID, ushort? elsterIndex, ushort? elsterValue)
     {
-      if(elsterIndex!=null&&elsterValue!=null)
+      if(elsterIndex!=null && elsterValue!=null)
       {
         //Write Elster Value
-        //bool ret = WriteElsterValue((ushort)senderCanID, (ushort)receiverCanID, elsterIndex, elsterValue);
+        _logger.LogInformation($"------------------------------------------");  
+        bool ret = WriteElsterValue((ushort)senderCanID, (ushort)receiverCanID, elsterIndex.Value, elsterValue.Value);
+        _logger.LogInformation($"Write Elster Value '{elsterValue:x4}' to {receiverCanID} was successfully sent: {ret}");  
+        _logger.LogInformation($"------------------------------------------");  
       }
       else if( elsterIndex!=null) 
       {
@@ -281,6 +284,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
         {
           _logger.LogInformation($"------------------------------------------");  
           _logger.LogInformation($"Read Elster Value '{retValue?.ToString()}'");  
+          _logger.LogInformation($"   in hex:'{retValue?.ToHexString()}'");  
           _logger.LogInformation($"------------------------------------------"); 
         } 
         else
@@ -382,6 +386,62 @@ public class HeatingAdapter : IDisposable, IHeatingService
         }
         returnElsterValue = null;
         return false;
+    }
+   
+    public bool WriteElsterValue(ushort senderCanId, ushort receiverCanId, ushort elster_idx, ushort elsterValue, bool waitForAnswer=false)
+    {
+      try {
+        if(senderCanId > 0x7FF) senderCanId = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);
+      }
+      catch {
+        senderCanId = 0x700;
+      }
+
+      ElsterCANFrame  sendElsterFrame = new ElsterCANFrame(
+                                      senderCanId,
+                                      (ElsterModule)receiverCanId,
+                                      waitForAnswer?ElsterTelegramType.WriteRespond:ElsterTelegramType.Write,
+                                      elster_idx,
+                                      elsterValue);
+
+      if( TrySendElsterCanFrame(sendElsterFrame, out ElsterCANFrame? responseFrame, waitForAnswer) == true)
+      {
+        // Wenn wir nicht auf antwort warten, dann sind wir fertig
+        if( !waitForAnswer) return true;
+
+        if(responseFrame?.Value != null)
+        {
+          //Antwort auf Write Telegram hat ein Value und ist nicht Null
+          short? retElsterValueShort = responseFrame.Value.GetShortValue();
+          if( retElsterValueShort != null)
+          {
+            if(retElsterValueShort == elsterValue)
+            {
+              _logger.LogInformation($"WriteElsterValue: {sendElsterFrame.ToString()} => {responseFrame.Value.ToString()}");
+              return true;
+            }
+            else  
+            {
+              _logger.LogWarning($"WriteElsterValue: {sendElsterFrame.ToString()} => not the same as requested value {responseFrame.Value.ToString()}");
+              return false;
+            }
+          }
+          else
+          {
+            _logger.LogInformation($"WriteElsterValue: {sendElsterFrame.ToString()} => empty response value: {responseFrame.Value.ToString()}");
+            return false;
+          }
+        }
+        else
+        {
+          _logger.LogWarning($"WriteElsterValue: {sendElsterFrame.ToString()} => Response frame is null or value is null. Error in the process of retrieving an value via elster read telegram");
+        }
+      }
+      else
+      {
+        _logger.LogWarning($"WriteElsterValue: {sendElsterFrame.ToString()} => No response");
+      }
+      return false;
     }
    
     /// <summary>

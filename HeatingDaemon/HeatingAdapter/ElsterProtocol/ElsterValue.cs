@@ -275,6 +275,19 @@ public class ElsterValue
     }
 
     /// <summary>
+    /// Gibt den Wert des ElsterValues als Hex-String zurück.
+    /// </summary>
+    /// <returns>Der Hex-String des ElsterValues.</returns>
+    public string ToHexString()
+    {
+        string retString = "";
+        for (int i = 0; i < _valueByteArray.Length; i++)
+            retString += $"{_valueByteArray[i]:X2}";
+        return retString;
+
+    }
+
+    /// <summary>
     /// Returns the value of the ElsterValue as a string.
     /// If the value is unknown or invalid, it also returns the raw data.
     /// The values are formatted in invariant culture, so they can be easily 

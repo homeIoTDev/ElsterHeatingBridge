@@ -312,27 +312,23 @@ public class HeatingAdapter : IDisposable, IHeatingService
 
         for (ushort elster_idx = 0; elster_idx <= ushort.MaxValue; elster_idx++)
         {
-          if(RequestElsterValue(senderCanId, receiverCanId, (ushort)elster_idx, out ElsterValue? retValue))
+          int ind = KElsterTable.ElsterTabIndex[elster_idx];
+          if (ind >= 0)  // Wenn es ein Elster-Eintrag gibt
           {
-            if( retValue == null) continue;
-            if( retValue.IsElsterNullValue()) continue;
-
-            StringBuilder retString = new StringBuilder();
-            retString.Append($"  {{ 0x{receiverCanId:X3}, 0x{elster_idx:X4}, 0x{retValue.ToHexString()}}},");
-             
-            int ind = KElsterTable.ElsterTabIndex[elster_idx];
-            if (ind >= 0)  // Wenn es ein Elster-Eintrag gibt
+            if(RequestElsterValue(senderCanId, receiverCanId, (ushort)elster_idx, out ElsterValue? retValue))
             {
+              if( retValue == null) continue;
+              if( retValue.IsElsterNullValue()) continue;
+
+              StringBuilder retString = new StringBuilder();
+              retString.Append($"  {{ 0x{receiverCanId:X3}, 0x{elster_idx:X4}, 0x{retValue.ToHexString()}}},");
               var elsterEntry = KElsterTable.ElsterTable[ind];
               retString.AppendLine($"  // {elsterEntry.Name}: {retValue.ToString()}");
+
+              elsterValues.Add((retValue, elster_idx, retString.ToString()));
             }
-            else
-            {
-              retString.AppendLine("");
-            }
-            elsterValues.Add((retValue, elster_idx, retString.ToString()));
           }
-        }
+       }//for
     }
 
     /// <summary>

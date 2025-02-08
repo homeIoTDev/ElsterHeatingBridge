@@ -56,7 +56,7 @@ public class ElsterCANFrame
 {
     private string  _toStringString = "";   // Cache für ToString(), wird in ValidateAndGenerateToString() gesetzt
     private ushort  _elsterIndex    = 0xfa; // Das Member ElsterIndex, das mit  0xfa fehlerhaft ist, wird in ValidateAndGenerateToString() gesetzt.
-    ElsterValue?    _elterValue     = null; // Cache für Value, wird in ValidateAndGenerateToString() gesetzt
+    ElsterValue?    _elsterValue    = null; // Cache für Value, wird in ValidateAndGenerateToString() gesetzt
 
 
     /// <summary>
@@ -171,7 +171,7 @@ public class ElsterCANFrame
     /// <summary>
     /// Der Elster-Wert des Telegramms. Nur gültig, wenn IsValidTelegram true
     /// </summary>
-    public ElsterValue? Value { get { return _elterValue; } }
+    public ElsterValue? Value { get { return _elsterValue; } }
 
     /// <summary>
     /// Erstellt eine neue Instanz der <see cref="ElsterCANFrame"/> Klasse aus einem CAN-Bus-Frame.
@@ -466,14 +466,14 @@ public class ElsterCANFrame
                 ElsterValue tempElsterValue = new ElsterValue((ushort)shortValue, ElsterValueType.et_default);
                 allPossibleInterpretableValues = tempElsterValue.GetAllPossibleInterpretableValues();
              }
-             _elterValue = null;
+             _elsterValue = null;
             _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} with unknown elster index {ElsterIndex:X4}, with possible data: '{GetValue()} - ({allPossibleInterpretableValues})' {DataArrayToString()}";
             return;
         }
 
         IsKnownElsterIndex      = true;
         var elsterEntry         = KElsterTable.ElsterTable[ind];
-        _elterValue             = new ElsterValue((ushort)shortValue, elsterEntry.Type);
+        _elsterValue             = new ElsterValue((ushort)shortValue, elsterEntry.Type);
         string elsterValueString= GetValueString(); 
         //If this is a request, then the value is always 0 and also unimportant, as it is being requested
         if(TelegramType == ElsterTelegramType.Read) {

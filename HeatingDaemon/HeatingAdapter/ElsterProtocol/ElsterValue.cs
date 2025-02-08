@@ -280,10 +280,10 @@ public class ElsterValue
     /// <returns>Der Hex-String des ElsterValues.</returns>
     public string ToHexString()
     {
-        string retString = "";
-        for (int i = 0; i < _valueByteArray.Length; i++)
-            retString += $"{_valueByteArray[i]:X2}";
-        return retString;
+        StringBuilder retString = new StringBuilder();
+        short elsterValue = BitConverter.ToInt16(_valueByteArray);
+        retString.AppendFormat("{0:X4})", elsterValue);
+        return retString.ToString();
 
     }
 

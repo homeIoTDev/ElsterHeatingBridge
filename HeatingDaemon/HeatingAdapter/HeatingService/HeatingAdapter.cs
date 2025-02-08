@@ -277,14 +277,14 @@ public class HeatingAdapter : IDisposable, IHeatingService
         _logger.LogInformation($"Write Elster Value '{elsterValue:x4}' to {receiverCanID} was successfully sent: {ret}");  
         _logger.LogInformation($"------------------------------------------");  
       }
-      else if( elsterIndex!=null) 
+      else if(elsterIndex!=null && elsterValue==null)
       {
         //Read Elster Value
         if(RequestElsterValue((ushort)senderCanID, (ushort)receiverCanID, (ushort)elsterIndex, out ElsterValue? retValue))
         {
           _logger.LogInformation($"------------------------------------------");  
           _logger.LogInformation($"Read Elster Value '{retValue?.ToString()}'");  
-          _logger.LogInformation($"   in hex:'{retValue?.ToHexString()}'");  
+          _logger.LogInformation($"   wrong in hex:'{retValue?.ToHexString()}'");  
           _logger.LogInformation($"------------------------------------------"); 
         } 
         else
@@ -292,10 +292,47 @@ public class HeatingAdapter : IDisposable, IHeatingService
           _logger.LogInformation($"Read Elster Value failed");  
         }
       }
-      else
+      else 
       {
         //Read all Elster Values on receiverCanId
+        RequestAllElsterValues((ushort)senderCanID, (ushort)receiverCanID,out var returnList);
+        _logger.LogInformation($"------------------------------------------");
+        _logger.LogInformation($"Read all Elster Values on {receiverCanID}");
+        foreach(var retValue in returnList)
+        {
+          _logger.LogInformation($"{retValue.retString}");
+        }
+        _logger.LogInformation($"------------------------------------------");
       }
+    }
+
+    private void RequestAllElsterValues(ushort senderCanId, ushort receiverCanId, out List<(ElsterValue value, ushort elster_index, string retString)> elsterValues)
+    {
+        elsterValues = new List<(ElsterValue value, ushort elster_index, string retString)>();
+
+        for (ushort elster_idx = 0; elster_idx <= ushort.MaxValue; elster_idx++)
+        {
+          if(RequestElsterValue(senderCanId, receiverCanId, (ushort)elster_idx, out ElsterValue? retValue))
+          {
+            if( retValue == null) continue;
+            if( retValue.IsElsterNullValue()) continue;
+
+            StringBuilder retString = new StringBuilder();
+            retString.Append($"  {{ 0x{receiverCanId:X3}, 0x{elster_idx:X4}, 0x{retValue.ToHexString()}}},");
+             
+            int ind = KElsterTable.ElsterTabIndex[elster_idx];
+            if (ind >= 0)  // Wenn es ein Elster-Eintrag gibt
+            {
+              var elsterEntry = KElsterTable.ElsterTable[ind];
+              retString.AppendLine($"  // {elsterEntry.Name}: {retValue.ToString()}");
+            }
+            else
+            {
+              retString.AppendLine("");
+            }
+            elsterValues.Add((retValue, elster_idx, retString.ToString()));
+          }
+        }
     }
 
     /// <summary>

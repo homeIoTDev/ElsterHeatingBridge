@@ -12,7 +12,7 @@
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER"]
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER.0200"]
             //"args": ["--can_scan=RemoteControl.MINUTE"]
-            "args": ["--can_scan=RemoteControl.WW_LERNEN"]
+            "args": ["--module_scan=default"]
             //funktioniert: wird aber zurückgestellt durch Manager"args": ["--can_scan=Direct.MINUTE.2700"]
             //"args": ["--can_scan=RemoteControl Mixer_Broadcast.PROGRAMMSCHALTER.0300"]
             

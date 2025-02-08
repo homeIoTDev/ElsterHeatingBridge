@@ -328,16 +328,16 @@ public class HeatingMqttService: IHostedService
     
     private void LogModuleScanSyntax(string? specificErrorMessage)
     {
-        if(specificErrorMessage != null) _logger.LogError($"Wrong syntax in parameter module_scan:{specificErrorMessage}");
+        if(specificErrorMessage != null) _logger.LogError($"Wrong syntax in parameter modules_scan:{specificErrorMessage}");
         _logger.LogError("");
         _logger.LogError("Syntax:");
-        _logger.LogError("HeatingMqttService --module_scan=[SenderCanID]");
+        _logger.LogError("HeatingMqttService --modules_scan=[SenderCanID]");
         _logger.LogError("");
         _logger.LogError("   SenderCanID: optional, default is standard CanId from appsettings.json. Hex-Value or module name (e.g. 700 or ExternalDevice)");
         _logger.LogError("");
-        _logger.LogError("Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)");
-        _logger.LogError("OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)");
-        _logger.LogError("OR       HeatingMqttService --module_scan=ExternalDevice  (use 700 as sender can id to scan all modules)");
+        _logger.LogError("Example: HeatingMqttService --modules_scan=default         (scan all modules with default sender can id)");
+        _logger.LogError("OR       HeatingMqttService --modules_scan=700             (use 700 as sender can id to scan all modules)");
+        _logger.LogError("OR       HeatingMqttService --modules_scan=ExternalDevice  (use 700 as sender can id to scan all modules)");
     }
 
     private void LogCanSendSyntax(string? specificErrorMessage)

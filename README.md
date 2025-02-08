@@ -91,17 +91,17 @@ angeschaut werden.
 Für die spätere Konfiguration sind die folgenden Parameter des HeatingDaemon sehr nützlich. Dabei wird nicht der Daemon gestartet, sondern das Programm HeatingMqttService direkt. Dieses beendet sich auch, nachdem die Parameter verarbeitet wurden. Die Konfiguration aus der appsettings.json ist auch bei den Parametern wirksam, z.B. die Konfiguration für den standard sender can id.
 
 
-Der Parameter `module_scan` dient zum Scannen der verfügbaren Module der Heizungsanlage:
+Der Parameter `modules_scan` dient zum Scannen der verfügbaren Module der Heizungsanlage:
 ```
-HeatingMqttService --module_scan=[SenderCanID]
+HeatingMqttService --modules_scan=[SenderCanID]
 
    SenderCanID: optional, default is standard CanId from appsettings.json. Hex-Value or module name (e.g. 700 or ExternalDevice
 
-Example: HeatingMqttService --module_scan=default         (scan all modules with default sender can id)
-OR       HeatingMqttService --module_scan=700             (use 700 as sender can id to scan all modules)
-OR       HeatingMqttService --module_scan=ExternalDevice  (use 700 as sender can id to scan all modules)
+Example: HeatingMqttService --modules_scan=default         (scan all modules with default sender can id)
+OR       HeatingMqttService --modules_scan=700             (use 700 as sender can id to scan all modules)
+OR       HeatingMqttService --modules_scan=ExternalDevice  (use 700 as sender can id to scan all modules)
 ```
-<details><summary>Ausgabe von module_scan</summary>
+<details><summary>Ausgabe von modules_scan</summary>
 
 ```
 info: HeatingDaemon.HeatingAdapter[0] scan on CAN-id: 700

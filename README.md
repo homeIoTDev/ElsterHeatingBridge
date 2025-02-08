@@ -184,6 +184,7 @@ info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Write on RemoteControl_Broa
 Mit dem Parameter `can_scan` können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
 um zu ermitteln auf welche Elster-Index-Werte diese reagiert.
 Für einen kompletten scan von einem Modul ist eine Umleitung in eine Datei zweckmäßig, z.B. `HeatingMqttService --can_scan RemoteControl > RemoteControl.log`
+Ein Scan für ein Modul dauert etwa 4 Minuten.
 
 ```
 HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]
@@ -199,7 +200,137 @@ OR       HeatingMqttService --can_scan=700 180.0126      (read minutes at elster
 OR       HeatingMqttService --can_scan=700 180.0126.0f00 (set minutes to 15)
 OR       HeatingMqttService --can_scan=700 Boiler.MINUTE (read minutes at elster index 0126)
 ```
+<details><summary>Ausgabe von module_scan</summary>
 
+```
+info: HeatingDaemon.HeatingAdapter[0] ------------------------------------------
+info: HeatingDaemon.HeatingAdapter[0] Read all Elster Values on RemoteControl
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0001, 0x5145)},  // FEHLERMELDUNG: 20805 (0x5145) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0002, 0x00F2)},  // KESSELSOLLTEMP: 24.2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0004, 0x00F2)},  // VORLAUFSOLLTEMP: 24.2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0005, 0x00C7)},  // RAUMSOLLTEMP_I: 19.9 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0006, 0x00C7)},  // RAUMSOLLTEMP_II: 19.9 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0007, 0x00C7)},  // RAUMSOLLTEMP_III: 19.9 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0008, 0x00B4)},  // RAUMSOLLTEMP_NACHT: 18.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0009, 0x0515)},  // UHRZEIT: 21:05 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x000A, 0x0802)},  // DATUM: 08.02. 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x000B, 0xC306)},  // GERAETE_ID: 195-06 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0010, 0x0400)},  // GERAETEKONFIGURATION: 1024 (0x0400) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0011, 0x00CB)},  // RAUMISTTEMP: 20.3 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0012, 0x00CA)},  // VERSTELLTE_RAUMSOLLTEMP: 20.2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0013, 0x0258)},  // EINSTELL_SPEICHERSOLLTEMP: 60.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x001F, 0x0190)},  // WASSERDRUCK: 400 (0x0190) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0020, 0x015E)},  // MIN_TEMP_KESSEL: 35.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0021, 0x0000)},  // ANFAHRTEMP: 0.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0022, 0x0032)},  // HYSTERESEZEIT: 5.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0023, 0x0000)},  // MAX_HYSTERESE: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0024, 0x0100)},  // PPL: 256 (0x0100) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0025, 0x0000)},  // SPEICHERSPERRE: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0026, 0x0014)},  // SPERRZEIT: 20 (0x0014) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0027, 0x0352)},  // HYSTERESE2: 850 (0x0352) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0028, 0x015E)},  // MAX_TEMP_KESSEL: 35.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0029, 0x0A00)},  // MAX_TEMP_HZK: 256.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x002A, 0x1E00)},  // KP: 7680 (0x1E00) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x002B, 0x7800)},  // TN: 120 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x002D, 0x00C8)},  // MODGRAD: 200 (0x00C8) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x002F, 0x0000)},  // STAENDIGE_MINIMALBEGRENZUNG: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0058, 0x0000)},  // MISCHER_ZU: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0059, 0x0000)},  // HEIZKREIS_STATUS: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x006E, 0x0200)},  // HEIZKREIS_STATUS_PROGSTELL: 512 (0x0200) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0075, 0x01A1)},  // FEUCHTE: 41.7 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0081, 0x0000)},  // ECO_AKZEPTANZ_RAUM: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x00FE, 0x0100)},  // INITIALISIERUNG: 1 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0103, 0x0000)},  // AUFHEIZOPTIMIERUNG: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0109, 0xEF00)},  // RAUMFUEHLERKORREKTUR: -4352 (0xEF00) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x010C, 0x0000)},  // AUSSENTEMPVERZOEGERUNG: 0.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x010D, 0x03E8)},  // CODENUMMER: 1000 (0x03E8) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x010E, 0x0014)},  // HEIZKURVE: 0.20 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x010F, 0x0500)},  // RAUMEINFLUSS: 1280 (0x0500) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0110, 0x0800)},  // MAX_VORVERLEGUNG: 2048 (0x0800) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0111, 0x0032)},  // HZK_KURVENABSTAND: 5.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0112, 0x0300)},  // PROGRAMMSCHALTER: Tagbetrieb 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0113, 0x0000)},  // SPRACHE: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0115, 0x0000)},  // HEIZKURVENADAPTION: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0116, 0x00BE)},  // HEIZGRENZE_TAG: 190 (0x00BE) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0117, 0x0064)},  // HEIZGRENZE_NACHT: 100 (0x0064) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0119, 0x0800)},  // AUSWAHL_STANDARDTEMP: 204.8 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x011B, 0x0100)},  // FERIENANFANG_TAG: 1 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x011C, 0x0100)},  // FERIENANFANG_MONAT: 1 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x011D, 0x0200)},  // FERIENANFANG_JAHR: 2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x011E, 0x0000)},  // FERIENENDE_TAG: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x011F, 0x0100)},  // FERIENENDE_MONAT: 1 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0120, 0x0200)},  // FERIENENDE_JAHR: 2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0121, 0x0600)},  // WOCHENTAG: 6 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0122, 0x0800)},  // TAG: 8 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0123, 0x0200)},  // MONAT: 2 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0124, 0x1900)},  // JAHR: 25 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0125, 0x1500)},  // STUNDE: 21 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0126, 0x0500)},  // MINUTE: 5 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x012B, 0x0032)},  // MIN_TEMP_HZK: 5.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x012E, 0x0000)},  // AUSSCHALTZEITOPTI: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x013D, 0x0096)},  // ABWESENHEITSTEMP: 15.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x013E, 0x0258)},  // EINSTELL_SPEICHERSOLLTEMP3: 60.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0141, 0x0000)},  // HZK_MODE: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0178, 0x0001)},  // BUSKENNUNG: 1 (0x0001) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x018F, 0x0000)},  // MISCHERPARAMETER: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0199, 0x00C3)},  // SOFTWARE_NUMMER: 195 (0x00C3) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x019A, 0x0006)},  // SOFTWARE_VERSION: 6 (0x0006) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x019D, 0x0000)},  // MISCHERPARAMETER_ZU: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x01A1, 0x0000)},  // PC_CODENUMMER: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0A00, 0x0028)},  // AUSSEN_FROSTTEMP: 4.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0A06, 0x0258)},  // EINSTELL_SPEICHERSOLLTEMP2: 60.0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x0A1F, 0x0000)},  // ZEITMASTER: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1410, 0x0060)},  // HEIZPROG_1_MO: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1411, 0x8080)},  // HEIZPROG_1_MO_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1412, 0x8080)},  // HEIZPROG_1_MO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1420, 0x0060)},  // HEIZPROG_1_DI: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1421, 0x8080)},  // HEIZPROG_1_DI_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1422, 0x8080)},  // HEIZPROG_1_DI_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1430, 0x0060)},  // HEIZPROG_1_MI: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1431, 0x8080)},  // HEIZPROG_1_MI_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1432, 0x8080)},  // HEIZPROG_1_MI_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1440, 0x0060)},  // HEIZPROG_1_DO: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1441, 0x8080)},  // HEIZPROG_1_DO_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1442, 0x8080)},  // HEIZPROG_1_DO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1450, 0x0060)},  // HEIZPROG_1_FR: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1451, 0x8080)},  // HEIZPROG_1_FR_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1452, 0x8080)},  // HEIZPROG_1_FR_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1460, 0x0060)},  // HEIZPROG_1_SA: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1461, 0x8080)},  // HEIZPROG_1_SA_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1462, 0x8080)},  // HEIZPROG_1_SA_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1470, 0x0060)},  // HEIZPROG_1_SO: 00:00-24:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1471, 0x8080)},  // HEIZPROG_1_SO_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1472, 0x8080)},  // HEIZPROG_1_SO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1510, 0x1820)},  // HEIZPROG_2_MO: 06:00-08:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1511, 0x4058)},  // HEIZPROG_2_MO_SCHALT_2: 16:00-22:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1512, 0x8080)},  // HEIZPROG_2_MO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1520, 0x1820)},  // HEIZPROG_2_DI: 06:00-08:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1521, 0x4058)},  // HEIZPROG_2_DI_SCHALT_2: 16:00-22:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1522, 0x8080)},  // HEIZPROG_2_DI_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1530, 0x1820)},  // HEIZPROG_2_MI: 06:00-08:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1531, 0x4058)},  // HEIZPROG_2_MI_SCHALT_2: 16:00-22:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1532, 0x8080)},  // HEIZPROG_2_MI_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1540, 0x1820)},  // HEIZPROG_2_DO: 06:00-08:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1541, 0x4058)},  // HEIZPROG_2_DO_SCHALT_2: 16:00-22:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1542, 0x8080)},  // HEIZPROG_2_DO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1550, 0x1820)},  // HEIZPROG_2_FR: 06:00-08:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1551, 0x4058)},  // HEIZPROG_2_FR_SCHALT_2: 16:00-22:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1552, 0x8080)},  // HEIZPROG_2_FR_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1560, 0x1C5C)},  // HEIZPROG_2_SA: 07:00-23:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1561, 0x8080)},  // HEIZPROG_2_SA_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1562, 0x8080)},  // HEIZPROG_2_SA_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1570, 0x1C5C)},  // HEIZPROG_2_SO: 07:00-23:00 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1571, 0x8080)},  // HEIZPROG_2_SO_SCHALT_2: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0x1572, 0x8080)},  // HEIZPROG_2_SO_SCHALT_3: not used time domain 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDC8, 0x0000)},  // BETRIEBSART_HZK_PUMPE: 0 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDC9, 0x0000)},  // ANNAHME_LEISTUNGSZWANG: 0 (0x0000) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDDE, 0x1900)},  // TAG_SOMMER_BEGIN: 6400 (0x1900) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDDF, 0x0300)},  // MONAT_SOMMER_BEGIN: 768 (0x0300) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDE0, 0x1900)},  // TAG_SOMMER_ENDE: 6400 (0x1900) 
+info: HeatingDaemon.HeatingAdapter[0]   { 0x301, 0xFDE1, 0x0A00)},  // MONAT_SOMMER_ENDE: 2560 (0x0A00) 
+info: HeatingDaemon.HeatingAdapter[0] ------------------------------------------
+```
+</details>
 
 ## Konfiguration
 In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:

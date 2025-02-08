@@ -183,6 +183,7 @@ info: HeatingDaemon.HeatingAdapter[0]   1x  Boiler ->Write on RemoteControl_Broa
 
 Mit dem Parameter `can_scan` können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
 um zu ermitteln auf welche Elster-Index-Werte diese reagiert.
+Für einen kompletten scan von einem Modul ist eine Umleitung in eine Datei zweckmäßig, z.B. `HeatingMqttService --can_scan RemoteControl > RemoteControl.log`
 
 ```
 HeatingMqttService --can_scan=[SenderCanID] ReceiverCanID[.ElsterIndex[.NewElsterValue]]

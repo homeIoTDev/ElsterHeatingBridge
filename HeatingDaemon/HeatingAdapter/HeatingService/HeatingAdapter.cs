@@ -284,7 +284,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
         {
           _logger.LogInformation($"------------------------------------------");  
           _logger.LogInformation($"Read Elster Value '{retValue?.ToString()}'");  
-          _logger.LogInformation($"   wrong in hex:'{retValue?.ToHexString()}'");  
+          _logger.LogInformation($"   in hex:'{retValue?.ToHexString()}'");  
           _logger.LogInformation($"------------------------------------------"); 
         } 
         else
@@ -310,7 +310,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     {
         elsterValues = new List<(ElsterValue value, ushort elster_index, string retString)>();
 
-        for (ushort elster_idx = 0; elster_idx <= ushort.MaxValue; elster_idx++)
+        for (int elster_idx = 0; elster_idx <= ushort.MaxValue; elster_idx++)
         {
           int ind = KElsterTable.ElsterTabIndex[elster_idx];
           if (ind >= 0)  // Wenn es ein Elster-Eintrag gibt
@@ -325,7 +325,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
               var elsterEntry = KElsterTable.ElsterTable[ind];
               retString.AppendLine($"  // {elsterEntry.Name}: {retValue.ToString()}");
 
-              elsterValues.Add((retValue, elster_idx, retString.ToString()));
+              elsterValues.Add((retValue, (ushort)elster_idx, retString.ToString()));
             }
           }
        }//for

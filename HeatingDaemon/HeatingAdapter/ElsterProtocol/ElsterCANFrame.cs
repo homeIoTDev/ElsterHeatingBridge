@@ -296,7 +296,7 @@ public class ElsterCANFrame
     /// Wenn es erweitert ist, wird erwartet, dass der Elster-Index ein zwei-Byte-Wert ist (Data[3] und Data[4]).
     /// Andernfalls wird der Wert bei Data[2] als Elster-Index verwendet.
     /// </remarks>
-    private short GetElsterIndex()
+    private int GetElsterIndex()
     {
         if (Data.Length > 7 || Data.Length < 3)
             return -1;
@@ -307,7 +307,7 @@ public class ElsterCANFrame
             {
                 return -1;
             }
-            return (short)(256*Data[3] + Data[4]);
+            return (int)(256*Data[3] + Data[4]);
         } 
         else
         {
@@ -407,7 +407,7 @@ public class ElsterCANFrame
     /// <returns>Der Wert als String</returns>
     public string GetValueString()
     {
-        short elsterIndex = GetElsterIndex();
+        int elsterIndex = GetElsterIndex();
         if (elsterIndex < 0)
             return "";
         int ind = KElsterTable.ElsterTabIndex[elsterIndex];
@@ -444,7 +444,7 @@ public class ElsterCANFrame
         string broadcastString  = IsReceiverModuleBroadcast() ? "(broadcast)" : "";
         string toDeviceModule   = Enum.IsDefined(typeof(ElsterModule), (int)ReceiverCanId) ? ReceiverElsterModule.ToString() : $"{ReceiverCanId:X3}{broadcastString}";
              
-        short elsterIndex = GetElsterIndex();
+        int elsterIndex = GetElsterIndex();
         if (elsterIndex < 0)
         {
             _toStringString  = $"Elster CAN frame from {fromDeviceModule}{fromDeviceCanIdInvalid} ->{TelegramType} on {toDeviceModule}{toDeviceCanIdInvalid} without elster index. {DataArrayToString()}";

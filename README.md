@@ -48,7 +48,7 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Framework-Dependent Deployment (FDD):dotnet publish -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
 - [x] module_scan als Parameter implementieren und in readme dokumentieren
 - [x] Passive Telegramme per Parameter für einen bestimmten Zeitraum starten und in readme dokumentieren
-- [ ] Can_Scan Module auf gültige Elster-Werte
+- [x] Can_Scan Module auf gültige Elster-Werte
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
 - [ ] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
@@ -1616,12 +1616,6 @@ info: HeatingDaemon.HeatingAdapter[0] ------------------------------------------
 info: HeatingDaemon.HeatingAdapter[0] ------------------------------------------
 info: HeatingDaemon.HeatingAdapter[0] Read all Elster Values on Boiler
 info: HeatingDaemon.HeatingAdapter[0] ------------------------------------------
-```
-</details>
-
-<details><summary>Ausgabe von module_scan für FES_COMFORT</summary>
-
-```
 ```
 </details>
 

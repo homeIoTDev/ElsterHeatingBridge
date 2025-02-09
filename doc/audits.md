@@ -183,3 +183,38 @@ Es ist jedoch festzustellen, dass die Heizung tatsächlich das Programm von der 
 ```
 [20250201_PassivElsterTelegrams.log](audits/20250201_PassivElsterTelegrams.log)
 
+
+## 01.02.2025 Einstellung der Uhzzeit und Datum 
+
+An der RemoteControl(FEK) gibt es keine Möglichkeit, die Uhrzeit einzustellen, nur am FES. Von dort werden an den Manager die einzelnen Werte geschrieben, wenn man sie am Display eisntellt. Der Boiler überträgt dann an die Remotcontrols per Broadcast und der Manager zuletzt auch an die FES. Somit kann man die Uhrzeit wohl auch von woanders setzen:
+
+```
+FES_COMFORT ->Write on Manager TAG 2
+Boiler ->Write on RemoteControl_Broadcast DATUM 02.02.
+Boiler ->Write on RemoteControl_Broadcast UHRZEIT 11:24
+Manager ->Write on HeatingModule_Broadcast TAG 2
+Manager ->Write on FES_COMFORT TAG 2
+```
+
+Der Test mit `--can_scan=Manager.MINUTE.1b00` klappt nicht.
+Test mit `--can_scan=FES_COMFORT Manager.MINUTE.1e00` funktioniert!!!! Somit lassen sich Uhrzeit und Datum setzen, indem man sich als FES ausgibt und an den Manager schreibt
+
+## 01.02.2025 Einstellung für PROGRAMMSCHALTER
+
+Start der Anlage macht folgendes:
+```
+Manager ->Write on HeatingModule_Broadcast PROGRAMMSCHALTER Absenkbetrieb
+Manager ->Write on FES_COMFORT PROGRAMMSCHALTER Absenkbetrieb
+FES_COMFORT ->Read on Boiler PROGRAMMSCHALTER
+Boiler ->Respond on FES_COMFORT PROGRAMMSCHALTER Absenkbetrieb
+Händische bedienung am FES:
+FES_COMFORT ->Write on Boiler PROGRAMMSCHALTER Tagbetrieb
+Manager ->Write on FES_COMFORT PROGRAMMSCHALTER Tagbetrieb
+Manager ->Write on HeatingModule_Broadcast PROGRAMMSCHALTER Tagbetrieb
+FES_COMFORT ->Read on Boiler PROGRAMMSCHALTER
+Boiler ->Respond on FES_COMFORT PROGRAMMSCHALTER Tagbetrieb
+
+Hänsiche Bedienung am FEK:
+NICHTS
+
+```

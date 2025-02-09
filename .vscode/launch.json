@@ -11,11 +11,8 @@
             "program": "${workspaceFolder}/HeatingDaemon/HeatingMqttService/bin/Debug/net8.0/HeatingMqttService.dll",
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER"]
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER.0200"]
-            //"args": ["--can_scan=RemoteControl.MINUTE"]
-            "args": ["--module_scan=default"]
-            //funktioniert: wird aber zurückgestellt durch Manager"args": ["--can_scan=Direct.MINUTE.2700"]
+            //"args": ["--can_scan=FES_COMFORT Manager.MINUTE.1e00"]
             //"args": ["--can_scan=RemoteControl Mixer_Broadcast.PROGRAMMSCHALTER.0300"]
-            
         }
     ]
 }

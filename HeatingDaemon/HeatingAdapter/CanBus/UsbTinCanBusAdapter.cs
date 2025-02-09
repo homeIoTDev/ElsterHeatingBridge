@@ -18,6 +18,8 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
     private CanAdapterResponse                      _lastCanAdapterResponse;
     private readonly ManualResetEventSlim           _sendLineResetEvent = new ManualResetEventSlim(false);
     private readonly object                         _sendLineLock       = new object();
+    private DateTime                                _lastUsbTinErrorStateTime = DateTime.MinValue;
+    private static readonly TimeSpan                _OpenCheckTimeInterval = TimeSpan.FromMilliseconds(10000);
 
     public enum CanAdapterResponse { OK, Error, Timeout };
 
@@ -32,7 +34,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
         _logger.LogInformation("UsbTinCanBusAdapter initialized with configuration.");
         _heatingService = heatingService;
         _mqttService    = mqttService;
-        _openPortTimer  = new System.Timers.Timer(10000);
+        _openPortTimer  = new System.Timers.Timer(_OpenCheckTimeInterval);
         _serialPort     = new SerialPort();
         ConfigureSerialPort();
 
@@ -105,8 +107,12 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
 
     private void OpenPort()
     {
-        if (_serialPort.IsOpen)
+        if (_serialPort.IsOpen && IsCanBusOpen)
         {
+            if(_lastUsbTinErrorStateTime.Add(_OpenCheckTimeInterval) < DateTime.Now)
+            {
+                SendLine("F"); // get Error state
+            }
             return;
         }
 
@@ -168,6 +174,8 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
 
         if(SendLine("O")==CanAdapterResponse.OK) // open CAN-Bus channel
         {
+            SendLine(""); // clear CanAdapter-buffer. 2x
+            SendLine(""); 
             IsCanBusOpen = true;
             _mqttService.SetReading("CAN_Channel", "opened"); 
             SendLine("F"); // get Error state
@@ -275,7 +283,7 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
                 }
                 else if(line.Length==3)
                 {
-                    if ( line[0] == 'F')  // old version of usbtin use Vxx und vyy in two lines
+                    if ( line[0] == 'F')  // Answer of Read Status Flags 'F'
                     {
                         SetCanAdapterResponse(CanAdapterResponse.OK);
                         if(IsCanBusOpen)
@@ -322,11 +330,16 @@ public partial class UsbTinCanBusAdapter: IDisposable, ICanBusService
         _logger.LogInformation($"Reading from serial port {_config.PortName} stopped");
     }
 
+    /// <summary>
+    /// Parsen an Answer of usbtin command Fxx. Anfragen sollten alle 500-1000ms gestartet werden
+    /// </summary>
+    /// <param name="hexCodeString"></param>
     private void ProcessCanBusErrorResponse(string hexCodeString)
     {
         int errorCode;
         List<string> errorTextArray = new List<string>();
         string errorTextString;
+        _lastUsbTinErrorStateTime = DateTime.Now;
     
         // Retrieve two-digit hex code and convert it to an integer
         errorCode = Convert.ToInt32(hexCodeString, 16);

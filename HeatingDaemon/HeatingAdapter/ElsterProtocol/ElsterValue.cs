@@ -282,7 +282,7 @@ public class ElsterValue
     {
         StringBuilder retString = new StringBuilder();
         short elsterValue = BitConverter.ToInt16(_valueByteArray);
-        retString.AppendFormat("{0:X4})", elsterValue);
+        retString.AppendFormat("{0:X4}", elsterValue);
         return retString.ToString();
 
     }

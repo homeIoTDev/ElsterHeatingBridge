@@ -127,11 +127,11 @@ public class HeatingAdapter : IDisposable, IHeatingService
                       cyclicReadingQuery.Schedule == ScheduleType.Periodic)
                 {
                     // Read the value if the interval is reached
-                    if(cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.Seconds) < DateTime.Now)
+                    if(cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds) < DateTime.Now)
                     {
                         if(cyclicReadingQuery.Operation == OperationType.GetElsterValue)
                         {
-                            _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}");
+                            _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}. (last read time:{cyclicReadingQuery.LastReadTime.ToShortTimeString()}, next read time:{cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds).ToShortTimeString()})");
                             if(RequestElsterValue(
                                 (ushort)cyclicReadingQuery.SenderCanId,
                                 (ushort)cyclicReadingQuery.ReceiverCanId,

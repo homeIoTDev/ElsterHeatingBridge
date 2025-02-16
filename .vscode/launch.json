@@ -13,6 +13,7 @@
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER.0200"]
             //"args": ["--can_scan=FES_COMFORT Manager.MINUTE.1e00"]
             //"args": ["--can_scan=RemoteControl Mixer_Broadcast.PROGRAMMSCHALTER.0300"]
+            //"args": ["--can_scan=FES_COMFORT Boiler.EINSTELL_SPEICHERSOLLTEMP2"
         }
     ]
 }

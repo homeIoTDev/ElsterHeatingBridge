@@ -214,7 +214,16 @@ Manager ->Write on HeatingModule_Broadcast PROGRAMMSCHALTER Tagbetrieb
 FES_COMFORT ->Read on Boiler PROGRAMMSCHALTER
 Boiler ->Respond on FES_COMFORT PROGRAMMSCHALTER Tagbetrieb
 
-Hänsiche Bedienung am FEK:
-NICHTS
+Händiche Bedienung am FEK:
+ =>NICHTS
 
 ```
+
+## 16.02.2025 Warmwasserparameter können nur von der FES gelesen werden
+Der Test mit `--can_scan=FES_COMFORT Boiler.EINSTELL_SPEICHERSOLLTEMP2` zeigt den Wert, der auch an der FES angezeigt wird bzgl.
+der ECO Solltemperatur von Warmwasser. Hingegen hat ein Scan auf Boiler ausgehend vom ExternalDevice keinen einzigen Wert zu Tage gefördert.
+
+Erkenntnis: Wer die Abfrage macht ist wichtig. Es kann nicht für alle Werte ExternalDevice genutzt werden!
+
+[FES_Boiler2.log](audits/FES_Boiler2.log)
+

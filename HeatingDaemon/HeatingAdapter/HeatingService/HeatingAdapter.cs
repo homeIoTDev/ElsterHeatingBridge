@@ -42,6 +42,8 @@ public class HeatingAdapter : IDisposable, IHeatingService
         _logger.LogDebug($"{frame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} -> {frame.ToString()}"); 
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
         
+
+        // Speichert Antworttelegramme, wenn diese erwartet werden in eine Queue
         if(_storeResponseFramesInQueue)
         {
           if( elsterFrame != null && (
@@ -52,6 +54,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
               }
         }
 
+        
         if(elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value !=null) {
 
           //Get count of passive Elster Telegrams 
@@ -80,23 +83,25 @@ public class HeatingAdapter : IDisposable, IHeatingService
                   (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
                     (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.ReceiverCanId  && 
                     (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) || 
-                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId)) ||
+                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId)) 
+                  /*  
+                  ||
 
                   (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
                     (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.SenderCanId  && 
                     (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF &&
                     _standardSenderCanID == elsterFrame.ReceiverCanId) || 
                     (uint)cyclicReadingQuery.SenderCanId == elsterFrame.ReceiverCanId))
+                    */
                   )
-                
-            {
-              _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' is being collected");
-              _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
-                                      elsterFrame.Value.ToString(),
-                                      cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+              {
+                _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' is being collected from passive Elster Telegram.");
+                _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
+                                        elsterFrame.Value.ToString(),
+                                        cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+              }
             }
-            }
-          }
+          } //foreach(CyclicReadingQueryDto)
           
           if(elsterFrame.IsKnownElsterIndex)
           {
@@ -138,7 +143,14 @@ public class HeatingAdapter : IDisposable, IHeatingService
                                 cyclicReadingQuery.ElsterIndex,
                                 out var elsterValue)==true)
                             {
-                                cyclicReadingQuery.LastReadTime = DateTime.Now;
+                              if( elsterValue != null)
+                              {
+                                _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterValue.ToString()}' is being collected from requested Elster Telegram.");
+                                _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
+                                                        elsterValue.ToString(),
+                                                        cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+                              }
+                              cyclicReadingQuery.LastReadTime = DateTime.Now;
                             }
                         }
                     }
@@ -148,7 +160,6 @@ public class HeatingAdapter : IDisposable, IHeatingService
           Thread.Sleep(1000);  // the minimum loop time of 1 second  
         }
     }
-
     
     /// <summary>
     /// Enables or disables the collection of passive Elster Telegrams. 
@@ -265,7 +276,6 @@ public class HeatingAdapter : IDisposable, IHeatingService
                       : "N/A".PadRight(6))}");
           }
     }
-
     
     public void CanScanElsterIndex(ElsterModule senderCanID, ElsterModule receiverCanID, ushort? elsterIndex, ushort? elsterValue)
     {

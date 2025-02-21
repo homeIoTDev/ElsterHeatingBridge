@@ -71,12 +71,12 @@ class Program
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 config.AddEnvironmentVariables();
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
                 if (args != null)
                 {
                     config.AddCommandLine(args);
                 }
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);                
             })
             .ConfigureServices((hostContext, services) =>
             {

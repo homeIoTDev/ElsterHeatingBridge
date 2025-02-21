@@ -223,7 +223,13 @@ Händiche Bedienung am FEK:
 Der Test mit `--can_scan=FES_COMFORT Boiler.EINSTELL_SPEICHERSOLLTEMP2` zeigt den Wert, der auch an der FES angezeigt wird bzgl.
 der ECO Solltemperatur von Warmwasser. Hingegen hat ein Scan auf Boiler ausgehend vom ExternalDevice keinen einzigen Wert zu Tage gefördert.
 
-Erkenntnis: Wer die Abfrage macht ist wichtig. Es kann nicht für alle Werte ExternalDevice genutzt werden!
+Erkenntnis: Welches Modul die Abfrage macht ist wichtig. Es kann nicht für alle Werte ExternalDevice genutzt werden!
 
 [FES_Boiler2.log](audits/FES_Boiler2.log)
+
+## 21.02.2025 Warmwasserparameter können auch vom Modul ComfortSoft gelesen werden !
+Der Test mit `./HeatingMqttService --Logging:LogLevel:Default=Information --can_scan="ComfortSoft Boiler.SPEICHERISTTEMP"` 
+zeigt auch den Wert an, der bisher als FES_COMFORT abgefragt wurde und leider dazu führte, dass die FES in einen Fehler lief.
+
+ Erkenntnis: Statt FES lieber ComfortSoft nutzen
 

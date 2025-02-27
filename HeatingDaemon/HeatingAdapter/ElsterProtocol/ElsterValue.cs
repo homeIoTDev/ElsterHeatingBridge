@@ -347,11 +347,25 @@ public class ElsterValue
                 break;
             case ElsterValueType.et_double_val:
                 double? retDoubleValue = GetDoubleValue();
-                retString.Append(retDoubleValue == null ? $"et_double_val:{elsterValue}" : $"{retDoubleValue}");
+                if(retDoubleValue == null)
+                {
+                    retString.Append( $"et_double_val:{elsterValue}");
+                }
+                else
+                {
+                    retString.AppendFormat(CultureInfo.InvariantCulture,"{0:F3}", retDoubleValue);
+                }
                 break;
             case ElsterValueType.et_triple_val:
                 double? retTripleValue = GetTripleValue();
-                retString.Append(retTripleValue == null ? $"et_triple_val:{elsterValue}" : $"{retTripleValue}");
+                if(retTripleValue == null)
+                {
+                    retString.Append( $"et_triple_val:{elsterValue}");
+                }
+                else
+                {
+                    retString.AppendFormat(CultureInfo.InvariantCulture,"{0:F3}", retTripleValue);
+                }
                 break;
             case ElsterValueType.et_little_endian:
                 retString.Append(((elsterValue >> 8) + 256*(elsterValue & 0xff)).ToString());

@@ -227,9 +227,8 @@ Erkenntnis: Welches Modul die Abfrage macht ist wichtig. Es kann nicht für alle
 
 [FES_Boiler2.log](audits/FES_Boiler2.log)
 
-## 21.02.2025 Warmwasserparameter können auch vom Modul ComfortSoft gelesen werden !
-Der Test mit `./HeatingMqttService --Logging:LogLevel:Default=Information --can_scan="ComfortSoft Boiler.SPEICHERISTTEMP"` 
-zeigt auch den Wert an, der bisher als FES_COMFORT abgefragt wurde und leider dazu führte, dass die FES in einen Fehler lief.
+## 21.02.2025 Warmwasserparameter können auch vom Modul ComfortSoft gelesen werden!
+Ein Test mit `./HeatingMqttService --Logging:LogLevel:Default=Information --can_scan="ComfortSoft Boiler.SPEICHERISTTEMP"` zeigt den Wert korrekt an, der zuvor über FES_COMFORT abgefragt wurde und zu einem Fehler führte.
 
- Erkenntnis: Statt FES lieber ComfortSoft nutzen
+Erkenntnis: Anstelle von FES sollte ComfortSoft verwendet werden, da das Auslesen über FES zu einem Fehler im FES führte (Anzeige: WP ERR oder ähnlich). Dies kann nur durch Abschalten der Stromversorgung von WPM und WP behoben werden. Dabei ist die Reihenfolge wichtig: Zuerst WPM3 wieder mit Strom versorgen, dann WP, wie es in der Bedienungsanleitung der Wärmepumpe beschrieben ist.
 

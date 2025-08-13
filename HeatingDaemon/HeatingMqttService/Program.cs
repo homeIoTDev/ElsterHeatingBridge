@@ -66,7 +66,7 @@ class Program
                         options.SingleLine = true;
                         //options.TimestampFormat = "HH:mm:ss ";
                     });
-                }                   
+                }
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
@@ -77,6 +77,21 @@ class Program
                 {
                     config.AddCommandLine(args);
                 }
+            })
+            .ConfigureLogging((hostingContext, logging) =>
+            {
+                logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                if (!SystemdHelpers.IsSystemdService())
+                {
+                    // Default-Kategorie auf "Information" setzen, egal was in der Konfiguration steht
+                    logging.AddFilter((provider, category, logLevel) =>
+                    {
+                        if (string.IsNullOrEmpty(category)) // Default
+                            return logLevel >= LogLevel.Information;
+                        // für alle anderen Kategorien gelten die Werte aus der config
+                        return true;
+                    });
+                }                       
             })
             .ConfigureServices((hostContext, services) =>
             {

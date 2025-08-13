@@ -17,7 +17,6 @@ Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend a
 Dieses Programm basiert auf den Arbeiten von:
 * Jürg <http://juerg5524.ch/>
 * Immi (THZ-Modul)
-* Radiator
 * Robots <https://github.com/robots/Elster/>
   
 ## Warnung

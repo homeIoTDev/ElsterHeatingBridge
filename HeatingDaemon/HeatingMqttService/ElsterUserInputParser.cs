@@ -133,9 +133,14 @@ public class ElsterUserInputParser
     internal static bool ParseISO8601Timespan(string msg_scan_value, out TimeSpan? duration)
     {
         duration = null;
-        try 
+        if (string.IsNullOrWhiteSpace(msg_scan_value)) return false;
+
+        string msg_scan_value_norm = msg_scan_value.Trim()
+                    .ToUpperInvariant()    // H, M, S, D, Y, T, P
+                    .Replace(',', '.');     // Dezimalpunkt
+        try
         {
-            duration = XmlConvert.ToTimeSpan(msg_scan_value);
+            duration = XmlConvert.ToTimeSpan(msg_scan_value_norm);
             return true;
         }
         catch (FormatException)

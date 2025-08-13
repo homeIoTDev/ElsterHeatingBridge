@@ -9,6 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "program": "${workspaceFolder}/HeatingDaemon/HeatingMqttService/bin/Debug/net8.0/HeatingMqttService.dll",
+            //"args": ["--msg_scan=PT10h"]
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER"]
             //"args": ["--can_scan=RemoteControl.PROGRAMMSCHALTER.0200"]
             //"args": ["--can_scan=FES_COMFORT Manager.MINUTE.1e00"]

@@ -207,6 +207,7 @@ Manager ->Write on HeatingModule_Broadcast PROGRAMMSCHALTER Absenkbetrieb
 Manager ->Write on FES_COMFORT PROGRAMMSCHALTER Absenkbetrieb
 FES_COMFORT ->Read on Boiler PROGRAMMSCHALTER
 Boiler ->Respond on FES_COMFORT PROGRAMMSCHALTER Absenkbetrieb
+
 Händische bedienung am FES:
 FES_COMFORT ->Write on Boiler PROGRAMMSCHALTER Tagbetrieb
 Manager ->Write on FES_COMFORT PROGRAMMSCHALTER Tagbetrieb
@@ -218,6 +219,11 @@ Händiche Bedienung am FEK:
  =>NICHTS
 
 ```
+## 13.08.2025 Einstellung für PROGRAMMSCHALTER
+Wenn der Kühlbetrieb aktiv ist, bietet die FEK keine Bedienmöglichkeit. Es wird lediglich "KÜHLBETRIEB" angezeigt, und die Taste für den Programmumschalter bleibt ohne Funktion. Ähnlich verhält es sich im Sommerbetrieb: Sobald dieser automatisch erkannt wird und kein Kühlbetrieb aktiv ist, zeigt die FEK lediglich "SOMMERBETRIEB" an, ohne weitere Bedienoptionen zu ermöglichen.
+
+Es ist anzunehmen, dass die FEK nicht für die Bedienung vorgesehen ist. Daher verzichten wir auf Abfragen und nutzen ausschließlich die passiven Telegramme der FES.
+
 
 ## 16.02.2025 Warmwasserparameter können nur von der FES gelesen werden
 Der Test mit `--can_scan=FES_COMFORT Boiler.EINSTELL_SPEICHERSOLLTEMP2` zeigt den Wert, der auch an der FES angezeigt wird bzgl.

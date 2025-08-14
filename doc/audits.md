@@ -1,7 +1,8 @@
 ## Untersuchungen 22.12.24 - Setzen der Heizkurve auf 0.2 von der FEK
 Eine Anpassung an der FEK (RemoteControl) für HK1 zeigt keinerlei Kommunikation auf dem Bus. Dies legt die Vermutung nahe, dass die FEK die vollständige Steuerung des HK1 übernimmt. Konkret wurde die Heizkurve auf 0.2 festgelegt. Da entweder der WPM die Steuerung des HKs übernimmt und nach der Installation der FEK alle Einstellungen bezüglich der Heizkurve aus diesem verschwunden sind, verwaltet und steuert nun wahrscheinlich die FEK alle Parameter und sendet nur die Ergebnisse an die anderen Module. Es ist fraglich, ob es überhaupt möglich ist, die Werte der FEK bezüglich der Heizkurve auszulesen oder diese extern zu schreiben. Letzteres wäre nur möglich, wenn mehrere FEKs erlaubt sind. 
 
-Schlussfolgerung: Zunächst muss das Abfragen und Beschreiben des Busses umgesetzt und ein Scan auf die FEK durchgeführt werden.
+### Erkenntnis:
+ Zunächst muss das Abfragen und Beschreiben des Busses umgesetzt und ein Scan auf die FEK durchgeführt werden.
 [20241222_Heizkurve.log](audits/20241222_Heizkurve.log)
 
 
@@ -229,12 +230,36 @@ Es ist anzunehmen, dass die FEK nicht für die Bedienung vorgesehen ist. Daher v
 Der Test mit `--can_scan=FES_COMFORT Boiler.EINSTELL_SPEICHERSOLLTEMP2` zeigt den Wert, der auch an der FES angezeigt wird bzgl.
 der ECO Solltemperatur von Warmwasser. Hingegen hat ein Scan auf Boiler ausgehend vom ExternalDevice keinen einzigen Wert zu Tage gefördert.
 
-Erkenntnis: Welches Modul die Abfrage macht ist wichtig. Es kann nicht für alle Werte ExternalDevice genutzt werden!
+### Erkenntnis:
+Welches Modul die Abfrage macht ist wichtig. Es kann nicht für alle Werte ExternalDevice genutzt werden!
 
 [FES_Boiler2.log](audits/FES_Boiler2.log)
 
 ## 21.02.2025 Warmwasserparameter können auch vom Modul ComfortSoft gelesen werden!
 Ein Test mit `./HeatingMqttService --Logging:LogLevel:Default=Information --can_scan="ComfortSoft Boiler.SPEICHERISTTEMP"` zeigt den Wert korrekt an, der zuvor über FES_COMFORT abgefragt wurde und zu einem Fehler führte.
 
-Erkenntnis: Anstelle von FES sollte ComfortSoft verwendet werden, da das Auslesen über FES zu einem Fehler im FES führte (Anzeige: WP ERR oder ähnlich). Dies kann nur durch Abschalten der Stromversorgung von WPM und WP behoben werden. Dabei ist die Reihenfolge wichtig: Zuerst WPM3 wieder mit Strom versorgen, dann WP, wie es in der Bedienungsanleitung der Wärmepumpe beschrieben ist.
+### Erkenntnis:
+ Anstelle von FES sollte ComfortSoft verwendet werden, da das Auslesen über FES zu einem Fehler im FES führte (Anzeige: WP ERR oder ähnlich). Dies kann nur durch Abschalten der Stromversorgung von WPM und WP behoben werden. Dabei ist die Reihenfolge wichtig: Zuerst WPM3 wieder mit Strom versorgen, dann WP, wie es in der Bedienungsanleitung der Wärmepumpe beschrieben ist.
 
+## 14.08.2025 WP ERR - Fehler im FES
+
+Der Fehler erscheint im Display der FES, wenn zu viele Nachrichten über den BUS gesendet werden (siehe auch Eintrag vom 21.02.2025 zur Behebung des Fehlerbildes). Häufig tritt der Fehler beim Start des Services auf, da zu diesem Zeitpunkt alle konfigurierten Parameter aktiv abgefragt werden. Der Fehler erscheint nicht immer sofort im Display, jedoch kann man die Anbahnung erkennen, wenn in der Logdatei des HeatingMqttServices wiederholt folgende Warnungen auftreten:
+
+```
+RequestElsterValue: ComfortSoft ->Read on FES_COMFORT PROGRAMMSCHALTER   => No response
+Failed to send frame ComfortSoft ->Read on FES_COMFORT PROGRAMMSCHALTER  to CAN-Bus, retry 1/2...
+Failed to send frame ComfortSoft ->Read on FES_COMFORT PROGRAMMSCHALTER  to CAN-Bus, retry 2/2...
+```
+
+### Erkenntnis:
+Um das Problem zu beheben, sollten die Werte `MaxReceivingWaitTime` und `SendRetryDelay` in der `appsettings.json` angepasst werden:
+
+```json
+"HeatingAdapterConfig": {
+        "_comment:": "StandardSenderCanID: 0x700 (ExternalDevice), 0x710 to 0x71f, and 0x780 to 0x79f, 0x680 to 0x69f",
+        "StandardSenderCanID": "0x700",
+        "SendRetryCount": 2,
+        "SendRetryDelay": 200,
+        "MaxReceivingWaitTime": 660
+}
+```

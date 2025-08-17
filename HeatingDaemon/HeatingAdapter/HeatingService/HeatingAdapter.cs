@@ -137,7 +137,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
 
       float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
       int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-      _logger.LogDebug($"Number of telegrams in the 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+      _logger.LogInformation($"Number of telegrams in the 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
       // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
       Thread.Sleep(waitTime);
   }

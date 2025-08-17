@@ -23,17 +23,22 @@ public class HeatingAdapter : IDisposable, IHeatingService
     private bool                                    _passiveElsterTelegramsEnabled = false;
     private static readonly Dictionary<(ushort ElsterIndex, uint SenderCanId, uint ReceiverCanId),(long count, ElsterCANFrame frame)> _passiveElsterTelegramList = new();
 
+    Queue<DateTime>                                 _receivedTelegramTimestamps     = new Queue<DateTime>();
+
+    private readonly TimeSpan                       _receivedTelegramTimeWindowMs = TimeSpan.FromMilliseconds(500); // Zeitfenster zur Frequenzmessung
+
+
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
-                          ICanBusService canBusService,
-                          IMqttService mqttService,
-                          ILogger<HeatingAdapter> logger)
-    {
-      _heatingAdapterConfig = heatingAdapterConfig.Value;
-      _canBusService        = canBusService;
-      _mqttService          = mqttService;
-      _logger               = logger;
-      try { _standardSenderCanID = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16);} catch {}
-    }
+                        ICanBusService canBusService,
+                        IMqttService mqttService,
+                        ILogger<HeatingAdapter> logger)
+  {
+    _heatingAdapterConfig = heatingAdapterConfig.Value;
+    _canBusService        = canBusService;
+    _mqttService          = mqttService;
+    _logger               = logger;
+    try { _standardSenderCanID = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16); } catch { }
+  }
 
 //Todo: Diese Methode sollte Schnell ausgefuehrt werden und
 //Todo: sollte keine Excpeption werfen!
@@ -41,7 +46,17 @@ public class HeatingAdapter : IDisposable, IHeatingService
     {
         _logger.LogDebug($"{frame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} -> {frame.ToString()}"); 
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
-        
+
+        // Sammelt die Zeitstempel der empfangenen Telegramme, um die Frequenz zu messen
+        // und entfernt die ältesten Zeitstempel, die außerhalb des Zeitfensters liegen
+        lock (_receivedTelegramTimestamps)
+        {
+          var now = DateTime.UtcNow;
+          _receivedTelegramTimestamps.Enqueue(now);
+
+          while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
+            _receivedTelegramTimestamps.Dequeue();
+        }        
 
         // Speichert Antworttelegramme, wenn diese erwartet werden in eine Queue
         if(_storeResponseFramesInQueue)
@@ -113,53 +128,68 @@ public class HeatingAdapter : IDisposable, IHeatingService
           }
         }
     }
+    
+  private void AdaptiveWaitForSend()
+  {
+      int telegramCount;
+      lock (_receivedTelegramTimestamps)
+      {
+          telegramCount = _receivedTelegramTimestamps.Count;
+      }
 
-    public void CyclicReadingLoop( CancellationToken cts, List<CyclicReadingQueryDto> readingList)
+      float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
+      int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
+      _logger.LogDebug($"Number of telegrams in the 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+      // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
+      Thread.Sleep(waitTime);
+  }
+
+  public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
+  {
+    _cyclicReadingQueryList = readingList;
+
+    while (!cts.IsCancellationRequested)
     {
-        _cyclicReadingQueryList = readingList;
-
-        while (!cts.IsCancellationRequested) 
+      if (_canBusService.IsCanBusOpen)
+      {
+        foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
         {
-          if(_canBusService.IsCanBusOpen)
-          {
-            foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
-            {
-                if(cts.IsCancellationRequested) break;
-                if(_canBusService.IsCanBusOpen == false) break;
+          if (cts.IsCancellationRequested) break;
+          if (_canBusService.IsCanBusOpen == false) break;
 
-                if( ( cyclicReadingQuery.Schedule == ScheduleType.AtStartup && 
-                      cyclicReadingQuery.LastReadTime == DateTime.MinValue) ||
-                      cyclicReadingQuery.Schedule == ScheduleType.Periodic)
+          if ((cyclicReadingQuery.Schedule == ScheduleType.AtStartup &&
+                cyclicReadingQuery.LastReadTime == DateTime.MinValue) ||
+                cyclicReadingQuery.Schedule == ScheduleType.Periodic)
+          {
+            // Read the value if the interval is reached
+            if (cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds) < DateTime.Now)
+            {
+              if (cyclicReadingQuery.Operation == OperationType.GetElsterValue)
+              {
+                _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}. (last read time:{cyclicReadingQuery.LastReadTime.ToShortTimeString()}, next read time:{cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds).ToShortTimeString()})");
+                if (RequestElsterValue(
+                    (ushort)cyclicReadingQuery.SenderCanId,
+                    (ushort)cyclicReadingQuery.ReceiverCanId,
+                    cyclicReadingQuery.ElsterIndex,
+                    out var elsterValue) == true)
                 {
-                    // Read the value if the interval is reached
-                    if(cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds) < DateTime.Now)
-                    {
-                        if(cyclicReadingQuery.Operation == OperationType.GetElsterValue)
-                        {
-                            _logger.LogDebug($"CyclicReadingQuery requesting value for {cyclicReadingQuery.ReadingName}. (last read time:{cyclicReadingQuery.LastReadTime.ToShortTimeString()}, next read time:{cyclicReadingQuery.LastReadTime.AddSeconds(cyclicReadingQuery.Interval.TotalSeconds).ToShortTimeString()})");
-                            if(RequestElsterValue(
-                                (ushort)cyclicReadingQuery.SenderCanId,
-                                (ushort)cyclicReadingQuery.ReceiverCanId,
-                                cyclicReadingQuery.ElsterIndex,
-                                out var elsterValue)==true)
-                            {
-                              if( elsterValue != null)
-                              {
-                                _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterValue.ToString()}' is being collected from requested Elster Telegram.");
-                                _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
-                                                        elsterValue.ToString(),
-                                                        cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
-                              }
-                              cyclicReadingQuery.LastReadTime = DateTime.Now;
-                            }
-                        }
-                    }
+                  if (elsterValue != null)
+                  {
+                    _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterValue.ToString()}' is being collected from requested Elster Telegram.");
+                    _mqttService.SetReading(cyclicReadingQuery.ReadingName,
+                                            elsterValue.ToString(),
+                                            cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+                  }
+                  cyclicReadingQuery.LastReadTime = DateTime.Now;
                 }
+              }
             }
           }
-          Thread.Sleep(1000);  // the minimum loop time of 1 second  
         }
+      }
+      Thread.Sleep(1000);  // the minimum loop time of 1 second  
     }
+  }
     
     /// <summary>
     /// Enables or disables the collection of passive Elster Telegrams. 
@@ -499,7 +529,9 @@ public class HeatingAdapter : IDisposable, IHeatingService
           // Das ElsterCANFrame zu einem CAN-Bus-Frame konvertieren
           StandardCanFrame sendCanFrame = sendElsterCanFrame.ToCanFrame();
           _logger.LogDebug($"{sendCanFrame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} <- {sendCanFrame.ToString()}"); 
-
+          
+          AdaptiveWaitForSend();
+          
           for (int tryCount = 1; tryCount <= _heatingAdapterConfig.SendRetryCount; tryCount++)  // 3 Versuche
           {
             if(waitForAnswer) // Wir wollen sofort die Antworten zwischenspeichern

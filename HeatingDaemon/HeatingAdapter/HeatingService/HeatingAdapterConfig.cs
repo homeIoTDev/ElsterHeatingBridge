@@ -22,4 +22,18 @@ public class HeatingAdapterConfig
     /// Maximale Wartezeit in ms für den Empfang eines Antwortframes
     /// </summary>
     public int MaxReceivingWaitTime { get; set; } = 560; 
+    /// <summary>
+    /// Maximale Anzahl an Telegrammen, die pro Zeitfenster von 250ms erwartet werden   
+    /// </summary>
+    public int MaxExpectedTelegrams { get; set; } = 40; // Erwartete max. Anzahl pro Fenster ( CAN-Bitrate: 20.000 Bits/s ÷ 120 Bits ≈ 166,6 Telegramme/s ) ca. 40 Telegramme pro 250 ms
+    /// <summary>
+    /// Basis-Wartezeit in ms für das Senden von Telegrammen
+    /// </summary>
+    public int BaseSendWaitMs { get; set; } = 5; // Minimale Wartezeit beim Senden von Telegrammen
+    /// <summary>
+    /// Skalierungsfaktor für die Wartezeit beim Senden von Telegrammen
+    /// Dieser Faktor wird verwendet, um die Wartezeit dynamisch anzupassen, basierend auf der Buslast.
+    /// Ein höherer Wert führt zu längeren Wartezeiten, was die Buslast verringern kann, aber auch die Reaktionszeit erhöht.
+    /// </summary>
+    public int SendWaitScalingFactor { get; set; } = 3;
 }

@@ -22,9 +22,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     private ushort                                  _standardSenderCanID = 0x700;
     private bool                                    _passiveElsterTelegramsEnabled = false;
     private static readonly Dictionary<(ushort ElsterIndex, uint SenderCanId, uint ReceiverCanId),(long count, ElsterCANFrame frame)> _passiveElsterTelegramList = new();
-
     Queue<DateTime>                                 _receivedTelegramTimestamps     = new Queue<DateTime>();
-
     private readonly TimeSpan                       _receivedTelegramTimeWindowMs = TimeSpan.FromMilliseconds(500); // Zeitfenster zur Frequenzmessung
 
 

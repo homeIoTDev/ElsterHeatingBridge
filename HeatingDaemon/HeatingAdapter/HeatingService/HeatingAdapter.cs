@@ -151,7 +151,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
       isLoadFactorHigh = loadFactor > 0.1;
       waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
-         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
   }
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
@@ -603,6 +603,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 
 
 

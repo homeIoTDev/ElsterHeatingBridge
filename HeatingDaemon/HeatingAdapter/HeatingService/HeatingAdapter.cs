@@ -136,10 +136,10 @@ public class HeatingAdapter : IDisposable, IHeatingService
       }
 
       float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      bool isLoadFactorHigh = (loadFactor > 0.10f);
+      bool isLoadFactorHigh = (loadFactor > 0.11f);
       int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
-          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
+          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
       // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
       Thread.Sleep(waitTime);
 
@@ -148,10 +148,10 @@ public class HeatingAdapter : IDisposable, IHeatingService
           telegramCount = _receivedTelegramTimestamps.Count;
       }
       loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      isLoadFactorHigh = (loadFactor > 0.1f);
+      isLoadFactorHigh = (loadFactor > 0.11f);
       waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
-         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
+         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
   }
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
@@ -603,6 +603,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 
 
 

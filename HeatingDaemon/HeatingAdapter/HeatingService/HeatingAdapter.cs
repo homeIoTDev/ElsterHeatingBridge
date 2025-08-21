@@ -127,7 +127,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
         }
     }
     
-  private float AdaptiveWaitForSend()
+  private void AdaptiveWaitForSend()
   {
       int telegramCount;
       lock (_receivedTelegramTimestamps)
@@ -152,7 +152,6 @@ public class HeatingAdapter : IDisposable, IHeatingService
       waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
          _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
-      return loadFactor;
   }
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
@@ -541,7 +540,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
           StandardCanFrame sendCanFrame = sendElsterCanFrame.ToCanFrame();
           _logger.LogDebug($"{sendCanFrame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} <- {sendCanFrame.ToString()}"); 
           
-          float loadFactor = AdaptiveWaitForSend();
+          AdaptiveWaitForSend();
             
           
           for (int tryCount = 1; tryCount <= _heatingAdapterConfig.SendRetryCount; tryCount++)  // 3 Versuche
@@ -556,7 +555,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
             try 
             {
               // Versuche das CAN-Frame an den CAN-Bus zu senden
-              bool ret = _canBusService.SendCanFrame(sendCanFrame,loadFactor);
+              bool ret = _canBusService.SendCanFrame(sendCanFrame);
               if(ret) {
 
                 if(waitForAnswer)
@@ -604,6 +603,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 
 
 

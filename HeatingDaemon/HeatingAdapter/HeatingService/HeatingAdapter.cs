@@ -139,7 +139,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
       bool isLoadFactorHigh = loadFactor > 0.10;
       int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
-          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
       // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
       Thread.Sleep(waitTime);
 
@@ -603,6 +603,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 
 
 

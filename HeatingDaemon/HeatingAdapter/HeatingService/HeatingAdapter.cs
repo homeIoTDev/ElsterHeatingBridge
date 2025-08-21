@@ -136,18 +136,22 @@ public class HeatingAdapter : IDisposable, IHeatingService
       }
 
       float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
+      bool isLoadFactorHigh = loadFactor > 11.0;
       int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-      _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+      if(isLoadFactorHigh)
+          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
       // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
       Thread.Sleep(waitTime);
 
-       lock (_receivedTelegramTimestamps)
+      lock (_receivedTelegramTimestamps)
       {
           telegramCount = _receivedTelegramTimestamps.Count;
       }
       loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
+      isLoadFactorHigh = loadFactor > 11.0;
       waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-      _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+      if(isLoadFactorHigh)
+         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
   }
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
@@ -598,4 +602,5 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 

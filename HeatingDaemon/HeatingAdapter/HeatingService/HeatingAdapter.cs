@@ -136,7 +136,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
       }
 
       float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      bool isLoadFactorHigh = loadFactor > 0.10;
+      bool isLoadFactorHigh = (loadFactor > 0.10f);
       int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
           _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
@@ -148,7 +148,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
           telegramCount = _receivedTelegramTimestamps.Count;
       }
       loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      isLoadFactorHigh = loadFactor > 0.1;
+      isLoadFactorHigh = (loadFactor > 0.1f);
       waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
       if(isLoadFactorHigh)
          _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms {isLoadFactorHigh} , {loadFactor}");
@@ -603,6 +603,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     }
 
 }
+
 
 
 

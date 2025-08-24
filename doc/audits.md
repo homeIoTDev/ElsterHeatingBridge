@@ -259,3 +259,31 @@ Nachdem ich nun den HeatingMqttService umprogrammiert habe, dass zwischen zwei T
 Was aber wohl den Fehler WP ERR verursacht hat, war ein Wertauslesen vom Boiler (der SOMMERBETRIEB) im Namen (bzw. als Absender) der FES, die ich auch in Betrieb habe und sich vermutlich dadurch weghängt. Komisch ist, dass andere Werte im Namen der FES funktionieren. Die Lösung ist nun, einfach eine Remote Control für den HK2, also RemoteControl2, als Absender zu verwenden. Eine RemoteControl ist die FES bei Stiebel und so eine FES muss explizit auf einen Heizkreis bei der Inbetriebnahme festgelegt werden. Da ich aber nur eine für HK1 habe, dürfte es niemanden stören.
 
 Nie die FES für abfragen verwenden!
+
+## 24.08.2025 .net Fehler auf Raspi
+Falls der folgende .NET-Fehler auftritt, wenn man versucht, den HeatingMqttService zu starten, fehlt die .NET-Core Umgebung:
+```
+./HeatingMqttService --can_scan='RemoteControl Boiler.SOMMERBETRIEB'
+You must install .NET to run this application.
+
+App: /root/HeatingMqttService/HeatingMqttService
+Architecture: arm
+App host version: 8.0.19
+.NET location: Not found
+
+Learn more:
+https://aka.ms/dotnet/app-launch-failed
+
+Download the .NET runtime:
+https://aka.ms/dotnet-core-applaunch?missing_runtime=true&arch=arm&rid=linux-arm&os=raspbian.11&apphost_version=8.0.19
+Failed to resolve libhostfxr.so [not found]. Error code: 0x80008083
+```
+
+### Erkenntnis:
+Die .NET-Laufzeitumgebung ist nicht korrekt installiert. Es fehlen die notwendigen Bash-Exports, die manuell hinzugefügt werden müssen, um den Service starten zu können.
+```
+export ASPNETCORE_ENVIRONMENT=Development
+export DOTNET_PRINT_TELEMETRY_MESSAGE=false
+export DOTNET_ROOT=/root/.dotnet
+export PATH=/root/.dotnet:$PATH
+```

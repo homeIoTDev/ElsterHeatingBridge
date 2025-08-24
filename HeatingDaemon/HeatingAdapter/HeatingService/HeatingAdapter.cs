@@ -167,8 +167,9 @@ public class HeatingAdapter : IDisposable, IHeatingService
     lock (_receivedTelegramTimestamps)
     {
       var now = DateTime.UtcNow;
+
       // Um den jetzigen Telegramm-Zähler zu aktualisieren, entfernen wir alle Zeitstempel,
-      // die außerhalb des Zeitfensters liegen
+      // die außerhalb  des Zeitfensters liegen
       while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
         _receivedTelegramTimestamps.Dequeue();
       telegramCount = _receivedTelegramTimestamps.Count;

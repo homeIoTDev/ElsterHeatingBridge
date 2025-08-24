@@ -17,11 +17,11 @@ public class HeatingAdapterConfig
     /// <summary>
     /// Verzögerung in ms zwischen den Wiederholungen
     /// </summary>
-    public int SendRetryDelay { get; set; } = 100;
+    public int SendRetryDelay { get; set; } = 300;
     /// <summary>
     /// Maximale Wartezeit in ms für den Empfang eines Antwortframes
     /// </summary>
-    public int MaxReceivingWaitTime { get; set; } = 500; 
+    public int MaxReceivingWaitTime { get; set; } = 500;
     /// <summary>
     /// Maximale Anzahl an Telegrammen, die pro Zeitfenster von 250ms erwartet werden   
     /// </summary>
@@ -36,4 +36,11 @@ public class HeatingAdapterConfig
     /// Ein höherer Wert führt zu längeren Wartezeiten, was die Buslast verringern kann, aber auch die Reaktionszeit erhöht.
     /// </summary>
     public int SendWaitScalingFactor { get; set; } = 100;
+
+    /// <summary>
+    /// Wartezeit in ms zwischen zwei aufeinanderfolgenden Sendungen, um bestimmte Busteilnehmer zu entlasten
+    /// (insbesondere bei mehrfachen Abfragen desselben Wertes)
+    /// </summary>
+    //ToDo: Evtl. diese Zeitwert für SendRetryDelay verwenden (die zeit bezieht sich auf einenen Bus-Teilnehmer!)
+    public int MinTimeBetweenSendsMs { get; set; } = 600; 
 }

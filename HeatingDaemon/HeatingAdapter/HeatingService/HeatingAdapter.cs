@@ -24,17 +24,18 @@ public class HeatingAdapter : IDisposable, IHeatingService
     private static readonly Dictionary<(ushort ElsterIndex, uint SenderCanId, uint ReceiverCanId),(long count, ElsterCANFrame frame)> _passiveElsterTelegramList = new();
     Queue<DateTime>                                 _receivedTelegramTimestamps     = new Queue<DateTime>();
     private readonly TimeSpan                       _receivedTelegramTimeWindowMs = TimeSpan.FromMilliseconds(500); // Zeitfenster zur Frequenzmessung
+    private DateTime                                _lastAdaptiveWaitTime = DateTime.MinValue;
 
 
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
-                        ICanBusService canBusService,
-                        IMqttService mqttService,
-                        ILogger<HeatingAdapter> logger)
+                      ICanBusService canBusService,
+                      IMqttService mqttService,
+                      ILogger<HeatingAdapter> logger)
   {
     _heatingAdapterConfig = heatingAdapterConfig.Value;
-    _canBusService        = canBusService;
-    _mqttService          = mqttService;
-    _logger               = logger;
+    _canBusService = canBusService;
+    _mqttService = mqttService;
+    _logger = logger;
     try { _standardSenderCanID = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16); } catch { }
   }
 
@@ -126,32 +127,60 @@ public class HeatingAdapter : IDisposable, IHeatingService
           }
         }
     }
-    
+
   private void AdaptiveWaitForSend()
   {
-      int telegramCount;
-      lock (_receivedTelegramTimestamps)
+    // Wartezeit basierend auf der minimalen Zeit zwischen Sendungen
+    if (_lastAdaptiveWaitTime == DateTime.MinValue)
+    {
+      _lastAdaptiveWaitTime = DateTime.UtcNow;
+    }
+    else
+    {
+      int elapsedMs = (int)(DateTime.UtcNow - _lastAdaptiveWaitTime).TotalMilliseconds;
+      if (elapsedMs < _heatingAdapterConfig.MinTimeBetweenSendsMs)
       {
-          telegramCount = _receivedTelegramTimestamps.Count;
+        Thread.Sleep(_heatingAdapterConfig.MinTimeBetweenSendsMs - elapsedMs);
       }
+    }
 
-      float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      bool isLoadFactorHigh = (loadFactor > 0.11f);
-      int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-      if(isLoadFactorHigh)
-          _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
-      // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
-      Thread.Sleep(waitTime);
 
-      lock (_receivedTelegramTimestamps)
-      {
-          telegramCount = _receivedTelegramTimestamps.Count;
-      }
-      loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-      isLoadFactorHigh = (loadFactor > 0.11f);
-      waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-      if(isLoadFactorHigh)
-         _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+    int telegramCount;
+    lock (_receivedTelegramTimestamps)
+    {
+      var now = DateTime.UtcNow;
+      // Um den jetzigen Telegramm-Zähler zu aktualisieren, entfernen wir alle Zeitstempel,
+      // die außerhalb des Zeitfensters liegen
+      while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
+        _receivedTelegramTimestamps.Dequeue();
+      telegramCount = _receivedTelegramTimestamps.Count;
+    }
+
+    float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
+    bool isLoadFactorHigh = (loadFactor > 0.11f);
+    int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
+    if (isLoadFactorHigh)
+      _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+    // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
+    Thread.Sleep(waitTime);
+
+    lock (_receivedTelegramTimestamps)
+    {
+      var now = DateTime.UtcNow;
+      // Um den jetzigen Telegramm-Zähler zu aktualisieren, entfernen wir alle Zeitstempel,
+      // die außerhalb des Zeitfensters liegen
+      while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
+        _receivedTelegramTimestamps.Dequeue();
+      telegramCount = _receivedTelegramTimestamps.Count;
+    }
+    loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
+    isLoadFactorHigh = (loadFactor > 0.11f);
+    waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
+    if (isLoadFactorHigh)
+      _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
+
+    // Letzter Zeitpunkt, an dem ein Telegramm gesendet wurde auf jetzt setzen
+    _lastAdaptiveWaitTime = DateTime.UtcNow;
   }
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
@@ -556,6 +585,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
             {
               // Versuche das CAN-Frame an den CAN-Bus zu senden
               bool ret = _canBusService.SendCanFrame(sendCanFrame);
+              // Mit ret = true wurde das Frame erfolgreich auf dem CAN-Bus gesendet
               if(ret) {
 
                 if(waitForAnswer)

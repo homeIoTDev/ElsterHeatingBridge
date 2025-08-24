@@ -168,7 +168,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
       if (elapsedMs < _heatingAdapterConfig.MinTimeBetweenSendsMs)
       {
         Thread.Sleep(_heatingAdapterConfig.MinTimeBetweenSendsMs - elapsedMs);
-        _logger.LogInformation($"Adaptive wait: Waiting for {_heatingAdapterConfig.MinTimeBetweenSendsMs - elapsedMs} ms to respect MinTimeBetweenSendsMs.");
+        _logger.LogDebug($"Adaptive wait: Waiting for {_heatingAdapterConfig.MinTimeBetweenSendsMs - elapsedMs} ms to respect MinTimeBetweenSendsMs.");
       }
     }
 
@@ -177,7 +177,7 @@ public class HeatingAdapter : IDisposable, IHeatingService
     int loadFactor = (int)(telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams);
     bool isLoadFactorHigh = loadFactor > _heatingAdapterConfig.MinBusLoadPercentage;
     
-    //if (isLoadFactorHigh)
+    if (isLoadFactorHigh)
       _logger.LogInformation($"Before send at {DateTime.Now.ToString("HH:mm:ss.fff")}: 250ms time window: {telegramCount}, bus load: {loadFactor}");
 
     DateTime endWatiTime =  DateTime.UtcNow.AddMilliseconds(_heatingAdapterConfig.MaxBusLoadWaitTimeMs);

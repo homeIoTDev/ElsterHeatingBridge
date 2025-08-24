@@ -241,7 +241,9 @@ Ein Test mit `./HeatingMqttService --Logging:LogLevel:Default=Information --can_
 ### Erkenntnis:
  Anstelle von FES sollte ComfortSoft verwendet werden, da das Auslesen über FES zu einem Fehler im FES führte (Anzeige: WP ERR oder ähnlich). Dies kann nur durch Abschalten der Stromversorgung von WPM und WP behoben werden. Dabei ist die Reihenfolge wichtig: Zuerst WPM3 wieder mit Strom versorgen, dann WP, wie es in der Bedienungsanleitung der Wärmepumpe beschrieben ist.
 
-## 14.08.2025 WP ERR - Fehler im FES
+ Nachtrag vom 24.08.2025 (siehe unten). Man kann auch die werte über die RemoteContrl auslesen!
+
+## 24.08.2025 WP ERR - Fehler im FES
 
 Der Fehler erscheint im Display der FES, wenn zu viele Nachrichten über den BUS gesendet werden (siehe auch Eintrag vom 21.02.2025 zur Behebung des Fehlerbildes). Häufig tritt der Fehler beim Start des Services auf, da zu diesem Zeitpunkt alle konfigurierten Parameter aktiv abgefragt werden. Der Fehler erscheint nicht immer sofort im Display, jedoch kann man die Anbahnung erkennen, wenn in der Logdatei des HeatingMqttServices wiederholt folgende Warnungen auftreten:
 
@@ -252,14 +254,8 @@ Failed to send frame ComfortSoft ->Read on FES_COMFORT PROGRAMMSCHALTER  to CAN-
 ```
 
 ### Erkenntnis:
-Um das Problem zu beheben, sollten die Werte `MaxReceivingWaitTime` und `SendRetryDelay` in der `appsettings.json` angepasst werden:
+Nachdem ich nun den HeatingMqttService umprogrammiert habe, dass zwischen zwei Telegramsendungen eine minimale Wartezeit von 600ms (ist konfigurierbar) besteht, brachte dies leider keine Verbesserung. Auch das nun die Buslast berücksichtigt wird, d.h. es wird vor dem Senden geprüft, ob sich wenige Telegramme auf dem Bus befinden (ist auch konfigurierbar), brachte das auch keine Verbesserung. 
 
-```json
-"HeatingAdapterConfig": {
-        "_comment:": "StandardSenderCanID: 0x700 (ExternalDevice), 0x710 to 0x71f, and 0x780 to 0x79f, 0x680 to 0x69f",
-        "StandardSenderCanID": "0x700",
-        "SendRetryCount": 2,
-        "SendRetryDelay": 200,
-        "MaxReceivingWaitTime": 660
-}
-```
+Was aber wohl den Fehler WP ERR verursacht hat, war ein Wertauslesen vom Boiler (der SOMMERBETRIEB) im Namen (bzw. als Absender) der FES, die ich auch in Betrieb habe und sich vermutlich dadurch weghängt. Komisch ist, dass andere Werte im Namen der FES funktionieren. Die Lösung ist nun, einfach eine Remote Control für den HK2, also RemoteControl2, als Absender zu verwenden. Eine RemoteControl ist die FES bei Stiebel und so eine FES muss explizit auf einen Heizkreis bei der Inbetriebnahme festgelegt werden. Da ich aber nur eine für HK1 habe, dürfte es niemanden stören.
+
+Nie die FES für abfragen verwenden!

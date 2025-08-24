@@ -43,89 +43,116 @@ public class HeatingAdapter : IDisposable, IHeatingService
 //Todo: sollte keine Excpeption werfen!
     public void ProcessCanFrame(CanFrame frame)
     {
-        _logger.LogDebug($"{frame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} -> {frame.ToString()}"); 
+        _logger.LogDebug($"{frame.CreatedAt.ToString("dd.MM.yy HH:mm:ss.fff")} -> {frame.ToString()}");
         ElsterCANFrame? elsterFrame = ElsterCANFrame.FromCanFrame(frame);
 
-        // Sammelt die Zeitstempel der empfangenen Telegramme, um die Frequenz zu messen
-        // und entfernt die ältesten Zeitstempel, die außerhalb des Zeitfensters liegen
-        lock (_receivedTelegramTimestamps)
-        {
-          var now = DateTime.UtcNow;
-          _receivedTelegramTimestamps.Enqueue(now);
-
-          while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
-            _receivedTelegramTimestamps.Dequeue();
-        }        
+        UpdateTelegramTimestampsForAdaptiveWait();
 
         // Speichert Antworttelegramme, wenn diese erwartet werden in eine Queue
-        if(_storeResponseFramesInQueue)
+        if (_storeResponseFramesInQueue)
         {
-          if( elsterFrame != null && (
-              elsterFrame.TelegramType == ElsterTelegramType.Respond ||
-              elsterFrame.TelegramType == ElsterTelegramType.RespondSystem ) )
-              {
+            if (elsterFrame != null && (
+                elsterFrame.TelegramType == ElsterTelegramType.Respond ||
+                elsterFrame.TelegramType == ElsterTelegramType.RespondSystem))
+            {
                 _responseFramesQueue.Add(elsterFrame);  //Enqueue
-              }
+            }
         }
 
-        
-        if(elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value !=null) {
 
-          //Get count of passive Elster Telegrams 
-          if(_passiveElsterTelegramsEnabled &&
-              elsterFrame.TelegramType != ElsterTelegramType.Read)
-          {
-            var passiveElsterTelegramKey = (elsterFrame.ElsterIndex, elsterFrame.SenderCanId, elsterFrame.ReceiverCanId);
-            if(_passiveElsterTelegramList.TryGetValue(passiveElsterTelegramKey, out var passiveElsterTelegram)==true)
+        if (elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value != null)
+        {
+
+            //Get count of passive Elster Telegrams 
+            if (_passiveElsterTelegramsEnabled &&
+                elsterFrame.TelegramType != ElsterTelegramType.Read)
             {
-              var passiveElsterTelegramNew = (passiveElsterTelegram.count + 1, elsterFrame);
-              _passiveElsterTelegramList[passiveElsterTelegramKey] = passiveElsterTelegramNew;
+                var passiveElsterTelegramKey = (elsterFrame.ElsterIndex, elsterFrame.SenderCanId, elsterFrame.ReceiverCanId);
+                if (_passiveElsterTelegramList.TryGetValue(passiveElsterTelegramKey, out var passiveElsterTelegram) == true)
+                {
+                    var passiveElsterTelegramNew = (passiveElsterTelegram.count + 1, elsterFrame);
+                    _passiveElsterTelegramList[passiveElsterTelegramKey] = passiveElsterTelegramNew;
+                }
+                else
+                {
+                    _passiveElsterTelegramList.Add(passiveElsterTelegramKey, (1, elsterFrame));
+                }
+            } // Nur Telegramme mit Werten
+
+            foreach (CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
+            {
+                if (cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex)
+                {
+                    if
+                      (
+
+                        (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
+                          (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.ReceiverCanId &&
+                          (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) ||
+                          (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId))
+                        /*  
+                        ||
+
+                        (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
+                          (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.SenderCanId  && 
+                          (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF &&
+                          _standardSenderCanID == elsterFrame.ReceiverCanId) || 
+                          (uint)cyclicReadingQuery.SenderCanId == elsterFrame.ReceiverCanId))
+                          */
+                        )
+                    {
+                        _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' is being collected from passive Elster Telegram.");
+                        _mqttService.SetReading(cyclicReadingQuery.ReadingName,
+                                                elsterFrame.Value.ToString(),
+                                                cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
+                    }
+                }
+            } //foreach(CyclicReadingQueryDto)
+
+            if (elsterFrame.IsKnownElsterIndex)
+            {
+                _logger.LogDebug($"{elsterFrame.ToString()}");
             }
             else
-            { 
-              _passiveElsterTelegramList.Add(passiveElsterTelegramKey, (1, elsterFrame));
-            }
-          } // Nur Telegramme mit Werten
-
-          foreach(CyclicReadingQueryDto cyclicReadingQuery in _cyclicReadingQueryList)
-          {
-            if ( cyclicReadingQuery.ElsterIndex == elsterFrame.ElsterIndex )
             {
-              if 
-                (
-                
-                  (cyclicReadingQuery.Schedule == ScheduleType.Passive &&
-                    (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.ReceiverCanId  && 
-                    (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF) || 
-                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.SenderCanId)) 
-                  /*  
-                  ||
-
-                  (cyclicReadingQuery.Schedule != ScheduleType.Passive &&
-                    (uint)cyclicReadingQuery.ReceiverCanId == elsterFrame.SenderCanId  && 
-                    (((ushort)cyclicReadingQuery.SenderCanId > 0x7FF &&
-                    _standardSenderCanID == elsterFrame.ReceiverCanId) || 
-                    (uint)cyclicReadingQuery.SenderCanId == elsterFrame.ReceiverCanId))
-                    */
-                  )
-              {
-                _logger.LogDebug($"CyclicReadingQuery {cyclicReadingQuery.ReadingName} with value '{elsterFrame.Value.ToString()}' is being collected from passive Elster Telegram.");
-                _mqttService.SetReading(cyclicReadingQuery.ReadingName, 
-                                        elsterFrame.Value.ToString(),
-                                        cyclicReadingQuery.SendCondition == SendCondition.OnEveryRead);
-              }
+                _logger.LogWarning($"{elsterFrame.ToString()}");
             }
-          } //foreach(CyclicReadingQueryDto)
-          
-          if(elsterFrame.IsKnownElsterIndex)
-          {
-            _logger.LogDebug($"{elsterFrame.ToString()}");
-          }
-          else
-          {
-            _logger.LogWarning($"{elsterFrame.ToString()}");
-          }
         }
+    }
+
+    private void UpdateTelegramTimestampsForAdaptiveWait()
+    {
+        var now = DateTime.UtcNow;
+        lock (_receivedTelegramTimestamps)
+        {
+            while (_receivedTelegramTimestamps.Count > 0
+                   && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
+            {
+                _receivedTelegramTimestamps.Dequeue();
+            }
+
+            _receivedTelegramTimestamps.Enqueue(now);
+        }
+    }
+
+    /// <summary>
+    /// Zählt die Telegramme innerhalb des Zeitfensters für die adaptive Wartezeit.
+    /// </summary>
+    /// <returns>Anzahl der empfangenen Telegramme im Zeitfenster.</returns>
+    private int CountTelegramsForAdaptiveWait()
+    {
+        int telegramCount;
+        var now = DateTime.UtcNow;
+        lock (_receivedTelegramTimestamps)
+        {
+            while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
+            {
+                _receivedTelegramTimestamps.Dequeue();
+            }
+            telegramCount = _receivedTelegramTimestamps.Count;
+        }
+
+        return telegramCount;
     }
 
   private void AdaptiveWaitForSend()
@@ -144,45 +171,34 @@ public class HeatingAdapter : IDisposable, IHeatingService
       }
     }
 
+    int telegramCount = CountTelegramsForAdaptiveWait();
 
-    int telegramCount;
-    lock (_receivedTelegramTimestamps)
+    int loadFactor = (int)(telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams);
+    bool isLoadFactorHigh = loadFactor > _heatingAdapterConfig.MinBusLoadPercentage;
+    
+    if (isLoadFactorHigh)
+      _logger.LogInformation($"Before send at {DateTime.Now.ToString("HH:mm:ss.fff")}: 250ms time window: {telegramCount}, bus load: {loadFactor}");
+
+    DateTime endWatiTime =  DateTime.UtcNow.AddMilliseconds(_heatingAdapterConfig.MaxBusLoadWaitTimeMs);
+    while(loadFactor > _heatingAdapterConfig.MinBusLoadPercentage && DateTime.UtcNow < endWatiTime)
     {
-      var now = DateTime.UtcNow;
-      // Um den jetzigen Telegramm-Zähler zu aktualisieren, entfernen wir alle Zeitstempel,
-      // die außerhalb des Zeitfensters liegen
-      while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
-        _receivedTelegramTimestamps.Dequeue();
-      telegramCount = _receivedTelegramTimestamps.Count;
+      // Kurzes Warten, um die CPU-Auslastung zu reduzieren und dem Bus Zeit zu geben, sich zu entlasten
+      // Ein einzelnes Telegramm benötigt also 6 Millisekunden :   pro Telegramm = 120 Bits / 20.000 Bits/s = 0,006 Sekunden = 6 Millisekunden
+      Thread.Sleep(10);
+      telegramCount = CountTelegramsForAdaptiveWait();
+      loadFactor = (int)(telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams);
     }
 
-    float loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-    bool isLoadFactorHigh = (loadFactor > 0.11f);
-    int waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-    if (isLoadFactorHigh)
-      _logger.LogInformation($"Before {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
-    // Warten, bis die adaptive Wartezeit abgelaufen ist, bevor das nächste Telegramm gesendet wird
-    Thread.Sleep(waitTime);
+    isLoadFactorHigh = loadFactor > _heatingAdapterConfig.MinBusLoadPercentage;
+     if (isLoadFactorHigh)
+      _logger.LogWarning($"After adaptive wait at {DateTime.Now.ToString("HH:mm:ss.fff")}, the bus load is still high: 250ms time window: {telegramCount}, bus load: {loadFactor}");
 
-    lock (_receivedTelegramTimestamps)
-    {
-      var now = DateTime.UtcNow;
-
-      // Um den jetzigen Telegramm-Zähler zu aktualisieren, entfernen wir alle Zeitstempel,
-      // die außerhalb  des Zeitfensters liegen
-      while (_receivedTelegramTimestamps.Count > 0 && now - _receivedTelegramTimestamps.Peek() > _receivedTelegramTimeWindowMs)
-        _receivedTelegramTimestamps.Dequeue();
-      telegramCount = _receivedTelegramTimestamps.Count;
-    }
-    loadFactor = (float)telegramCount / _heatingAdapterConfig.MaxExpectedTelegrams;
-    isLoadFactorHigh = (loadFactor > 0.11f);
-    waitTime = _heatingAdapterConfig.BaseSendWaitMs + (int)(loadFactor * _heatingAdapterConfig.SendWaitScalingFactor * _heatingAdapterConfig.BaseSendWaitMs);
-    if (isLoadFactorHigh)
-      _logger.LogInformation($"After {DateTime.Now.ToString("HH:mm:ss.fff")} 250ms time window: {telegramCount}, bus load: {loadFactor:P0}, wait time: {waitTime} ms");
 
     // Letzter Zeitpunkt, an dem ein Telegramm gesendet wurde auf jetzt setzen
     _lastAdaptiveWaitTime = DateTime.UtcNow;
   }
+
+
 
   public void CyclicReadingLoop(CancellationToken cts, List<CyclicReadingQueryDto> readingList)
   {

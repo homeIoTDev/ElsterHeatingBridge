@@ -1,4 +1,4 @@
-﻿// ##############################################################################
+// ##############################################################################
 // # This code implements an interface to a Tecalor/Stiebel Eltron Heatpump using
 // # the CAN bus Interfaces supported USBtin
 // #

@@ -71,6 +71,23 @@ echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
 echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.bashrc
 ```
 
+.net 8.0 installieren - Alternative für z.B. Raspberry OS
+
+Öffne https://dotnet.microsoft.com/en-us/download/dotnet/8.0, finde dort im Bereich .NET Runtime 8.0.x - `x`als Platzhalter für die aktuelle Unterversion - den Link für Linux Arm64. Öffne diesen und lade dort das angebotene Paket, z.B. https://builds.dotnet.microsoft.com/dotnet/Runtime/8.0.24/dotnet-runtime-8.0.24-linux-arm64.tar.gz, herunter.
+```
+sudo mkdir -p /usr/share/dotnet
+sudo tar -xzf dotnet-runtime-8.0.*-linux-arm64.tar.gz -C /usr/share/dotnet
+```
+
+.net8.0 Installation überprüfen
+```
+dotnet --list-runtimes
+```
+Muss auf jeden Fall die folgende Zeile aufführen mit `x` als Platzhalter für die aktuelle Unterversion
+```
+Microsoft.NETCore.App 8.0.x
+```
+
 Die Konfiguration befindet sich normalerweise in der `appsettings.json` Datei. Konfigurationen können auch über den Befehl `dotnet run --HeatingAdapterConfig:PortName="/dev/ttyACM0"` gesetzt werden. Das Programm basiert auf Microsoft .NET Core 8, was eine Voraussetzung ist.
 
 Die Datei [HeatingDaemon/HeatingDaemon.service](HeatingDaemon/HeatingDaemon.service) muss in das Verzeichnis `/etc/systemd/system/` abgelegt werden.

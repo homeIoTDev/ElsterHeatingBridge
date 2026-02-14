@@ -34,6 +34,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HeatingDaemon;
@@ -96,24 +97,47 @@ class Program
             .ConfigureServices((hostContext, services) =>
             {
                 services.AddOptions();
+
+                // Adapter-Auswahl (UsbTin vs. SocketCAN)
+                services.Configure<CanBusAdapterConfig>(hostContext.Configuration.GetSection("CanBusAdapterConfig"));
+
+                // Adapter-spezifische Konfigurationen
                 services.Configure<UsbTinCanBusAdapterConfig>(hostContext.Configuration.GetSection("UsbTinCanBusAdapterConfig"));
                 services.Configure<MqttAdapterConfig>(hostContext.Configuration.GetSection("MqttAdapterConfig"));
                 services.Configure<HeatingAdapterConfig>(hostContext.Configuration.GetSection("HeatingAdapterConfig"));
                 services.Configure<HeatingMqttServiceConfig>(hostContext.Configuration.GetSection("HeatingMqttServiceConfig"));
-                services.AddSingleton<MqttAdapter>();   //Verwendet HeatingMqttService direkt
+
+                // Konkrete Implementierungen (werden je nach AdapterType genutzt)
+                services.AddSingleton<MqttAdapter>();              // wird von HeatingMqttService direkt genutzt
                 services.AddSingleton<UsbTinCanBusAdapter>();
+                services.AddSingleton<SocketCanCanBusAdapter>();
                 services.AddSingleton<HeatingAdapter>();
+
+                // Interfaces
                 services.AddSingleton<IMqttService>(provider => provider.GetRequiredService<MqttAdapter>());
-                services.AddSingleton<ICanBusService>(provider => provider.GetRequiredService<UsbTinCanBusAdapter>()); 
-                services.AddSingleton<IHeatingService>(provider => provider.GetRequiredService<HeatingAdapter>()); 
-                services.AddSingleton(provider => new Lazy<IHeatingService>(provider.GetRequiredService<HeatingAdapter>)); 
+
+                // Umschalten des CAN-Adapters via appsettings.json
+                services.AddSingleton<ICanBusService>(provider =>
+                {
+                    var cfg = provider.GetRequiredService<IOptions<CanBusAdapterConfig>>().Value;
+                    return cfg.AdapterType switch
+                    {
+                        CanBusAdapterType.SocketCan => provider.GetRequiredService<SocketCanCanBusAdapter>(),
+                        _ => provider.GetRequiredService<UsbTinCanBusAdapter>()
+                    };
+                });
+
+                services.AddSingleton<IHeatingService>(provider => provider.GetRequiredService<HeatingAdapter>());
+
+                // Lazy-Wrapper (Cycle-Breaking)
+                services.AddSingleton(provider => new Lazy<IHeatingService>(provider.GetRequiredService<HeatingAdapter>));
                 services.AddSingleton(provider => new Lazy<HeatingAdapter>(provider.GetRequiredService<HeatingAdapter>));
-                services.AddSingleton(provider => new Lazy<UsbTinCanBusAdapter>(provider.GetRequiredService<UsbTinCanBusAdapter>));
-                services.AddSingleton(provider => new Lazy<MqttAdapter>(provider.GetRequiredService<MqttAdapter>));                              
+                services.AddSingleton(provider => new Lazy<ICanBusService>(provider.GetRequiredService<ICanBusService>));
+                services.AddSingleton(provider => new Lazy<MqttAdapter>(provider.GetRequiredService<MqttAdapter>));
+
                 services.AddHostedService<HeatingMqttService>();
             });
 
-        
         await builder.RunConsoleAsync();
     }
 }

@@ -14,7 +14,7 @@ public class HeatingMqttService: IHostedService
 
     private readonly ILogger<HeatingMqttService>    _logger;
     private readonly HeatingMqttServiceConfig       _heatingMqttServiceConfig;
-    private readonly Lazy<UsbTinCanBusAdapter>      _usbTinCanBusAdapter;
+    private readonly Lazy<ICanBusService>         _canBusService;
     private readonly Lazy<MqttAdapter>              _ac10MqttAdapter;
     private readonly Lazy<HeatingAdapter>           _heatingAdapter;
     private readonly CancellationTokenSource        _cts = new CancellationTokenSource();
@@ -22,7 +22,7 @@ public class HeatingMqttService: IHostedService
     private          IHostApplicationLifetime       _applicationLifetime;
 
     public HeatingMqttService(  IOptions<HeatingMqttServiceConfig> heatingMqttServiceConfig,
-                                Lazy<UsbTinCanBusAdapter> usbTinCanBusAdapter,
+                                Lazy<ICanBusService> canBusService,
                                 Lazy<MqttAdapter> ac10MqttAdapter,
                                 Lazy<HeatingAdapter> heatingAdapter,
                                 ILogger<HeatingMqttService> logger,
@@ -32,7 +32,7 @@ public class HeatingMqttService: IHostedService
     {
         _logger                     = logger;
         _heatingMqttServiceConfig   = heatingMqttServiceConfig.Value;
-        _usbTinCanBusAdapter        = usbTinCanBusAdapter;
+        _canBusService              = canBusService;
         _ac10MqttAdapter            = ac10MqttAdapter;
         _heatingAdapter             = heatingAdapter;
         _configuration              = configuration;
@@ -44,7 +44,7 @@ public class HeatingMqttService: IHostedService
     {
         _logger.LogInformation("Starting HeatingMqttService...");
         _ac10MqttAdapter.Value.Start();
-        _usbTinCanBusAdapter.Value.Start();
+        _canBusService.Value.Start();
         _ = Task.Run(() => ProcessConsoleInput(_cts.Token), _cts.Token);
         _ = Task.Run(() => ProcessCyclicReadingsQuery(_cts.Token), _cts.Token);
         await Task.CompletedTask;
@@ -54,7 +54,7 @@ public class HeatingMqttService: IHostedService
     {
         _logger.LogInformation("Stopping HeatingMqttService...");
         _cts.Cancel();
-        _usbTinCanBusAdapter.Value.Stop();
+        _canBusService.Value.Stop();
         _ac10MqttAdapter.Value.Stop();
         // Your shutdown logic here
         await Task.CompletedTask;
@@ -141,27 +141,42 @@ public class HeatingMqttService: IHostedService
                 }
                 else if(key == ConsoleKey.C)
                 {
-                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("C");
+                    if (_canBusService.Value is UsbTinCanBusAdapter usbTin)
+                        usbTin.SendLineWithoutResponse("C");
+                    else
+                        _logger.LogInformation("Command 'C' is only supported when using the UsbTin adapter.");
                 }
                 else if(key == ConsoleKey.O)
                 {
-                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("O");
+                    if (_canBusService.Value is UsbTinCanBusAdapter usbTin)
+                        usbTin.SendLineWithoutResponse("O");
+                    else
+                        _logger.LogInformation("Command 'O' is only supported when using the UsbTin adapter.");
                 }
                 else if(key == ConsoleKey.N)
                 {
-                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("");
+                    if (_canBusService.Value is UsbTinCanBusAdapter usbTin)
+                        usbTin.SendLineWithoutResponse("");
+                    else
+                        _logger.LogInformation("Command 'N' is only supported when using the UsbTin adapter.");
                 }                
                 else if(key == ConsoleKey.F)
                 {
-                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("F");
+                    if (_canBusService.Value is UsbTinCanBusAdapter usbTin)
+                        usbTin.SendLineWithoutResponse("F");
+                    else
+                        _logger.LogInformation("Command 'F' is only supported when using the UsbTin adapter.");
                 }
                 else if(key == ConsoleKey.V)
                 {
-                    _usbTinCanBusAdapter.Value.SendLineWithoutResponse("V");
+                    if (_canBusService.Value is UsbTinCanBusAdapter usbTin)
+                        usbTin.SendLineWithoutResponse("V");
+                    else
+                        _logger.LogInformation("Command 'V' is only supported when using the UsbTin adapter.");
                 }                                
                 else if(key == ConsoleKey.D)
                 {
-                    _usbTinCanBusAdapter.Value.Reset();
+                    _canBusService.Value.Reset();
                 }
                 else if(key == ConsoleKey.M)
                 { 
@@ -305,12 +320,12 @@ public class HeatingMqttService: IHostedService
     {
         _logger.LogInformation($"Waiting up to {sec} seconds for Mqtt-Broker and CanBus to become available...");
         int counter = 0;
-        while (!_usbTinCanBusAdapter.Value.IsCanBusOpen && counter < sec)
+        while (!_canBusService.Value.IsCanBusOpen && counter < sec)
         {
             Thread.Sleep(1000);
             counter++;
         }
-        return _usbTinCanBusAdapter.Value.IsCanBusOpen;
+        return _canBusService.Value.IsCanBusOpen;
     }
 
     private void LogMsgScanSyntax(string? specificErrorMessage)

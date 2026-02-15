@@ -287,3 +287,14 @@ export DOTNET_PRINT_TELEMETRY_MESSAGE=false
 export DOTNET_ROOT=/root/.dotnet
 export PATH=/root/.dotnet:$PATH
 ```
+
+## 15.02.2026 EVU‑Status wird beim Start der Wärmepumpe einmalig falsch gesetzt
+Beim Start der Wärmepumpe sendet das Gerät einmalig den Status
+„EVU_SPERRE_AKTIV: 1 (0x0001)“, auch wenn tatsächlich keine EVU‑Sperre aktiv ist.
+Läuft der HeatingDaemon zu diesem Zeitpunkt bereits, interpretiert er dieses Telegramm als echte Sperre und bleibt anschließend dauerhaft im EVU‑Sperrmodus. Da in vielen Installationen (wie auch hier) nie eine EVU‑Sperre ausgelöst wird, erfolgt später keine automatische Rücknahme des Status.
+### Erkenntnis:
+Der initiale EVU‑Status beim Hochfahren der Wärmepumpe ist nicht zuverlässig und darf nicht als echter Sperrstatus gewertet werden. Der HeatingDaemon übernimmt diesen Wert jedoch ungefiltert und bleibt dadurch im falschen Zustand.
+### Workaround:
+Bis eine saubere Filterung implementiert ist, gibt es zwei praktikable Lösungen:
+- Zuerst die Wärmepumpe starten, dann den HeatingDaemon
+- EVU‑Sperre in der Konfiguration vom HeatingDaemon deaktivieren: Wenn die EVU‑Sperre in der eigenen Installation ohnehin nicht genutzt wird, kann sie vorübergehend abgeschaltet werden.

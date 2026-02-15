@@ -4,6 +4,7 @@
 Dieser Code implementiert eine Schnittstelle zu einer Tecalor/Stiebel Eltron Wärmepumpe über den CAN-Bus. Folgende Schnittstellen werden unterstützt:
 
 * USBtin (Version HW10, SW00 - siehe Fischl.de) mit dem Protokoll von LAWICEL CANUSB
+* SocketCAN (native Linux‑CAN‑Schnittstelle, z. B. MCP2515‑HATs, CAN‑USB‑Adapter, virtuelle Interfaces wie vcan0)
 * Tecalor TTL 10 AC (Stibel Eltron WPL 10 AC) mit FEK und WPM3
 
 Die Kommunikation mit der Wärmepumpe erfolgt über den CAN-Bus, sowohl lesend als auch schreibend. Die Ergebnisse werden im Speicher des HeatingMqttService gehalten und sofort an einen MQTT-Message-Broker weitergeleitet. Das Wording lehnt sich dabei stark an die FHEM-Wärmepumpen-Implementierung an (siehe auch unten). Durch die MQTT-Anbindung sind auch Integrationen in andere Hausautomatisierungssysteme möglich. Der HeatingMqttService ist ein .NET 8 Linux systemd Service und kann später neben FHEM betrieben werden.
@@ -2492,7 +2493,29 @@ Abfrage vom ExternalDevice liefert keine Werte vom Manager oder Boiler
 
 
 ## Konfiguration
-In der `appsettings.json` Datei kann eine passive Abfrage beispielsweise konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:
+### CAN-Backend-Auswahl
+
+Die Auswahl des CAN-Adapters (USBTin oder SocketCAN) erfolgt über die `appsettings.json`:
+
+```json
+{
+  "CanBusAdapterConfig": {
+    "AdapterType": "UsbTin",
+    "SocketCanInterfaceName": "can0",
+    "SocketCanReceiveTimeoutMs": 1000
+  },
+  "UsbTinCanBusAdapterConfig": {
+    "PortName": "/dev/ttyACM0"
+  }
+}
+```
+**Standardwert:** USBTin (falls nicht angegeben)
+
+**Hinweis:** Die Einrichtung der CAN-Schnittstelle (Bitrate, Aktivierung, `ip link set …`) erfolgt weiterhin auf Betriebssystemebene.
+
+### Zyklische Abfragen konfigurieren
+
+Zyklische Abfragen werden in der `appsettings.json` unter `HeatingMqttServiceConfig.CyclicReadingsQuery` definiert. Beispielsweise kann eine passive Abfrage konfiguriert werden, die ausgelöst wird, wenn der Boiler ein Telegramm an die FES_COMFORT sendet:
 ```
 "HeatingMqttServiceConfig": {
     "CyclicReadingsQuery": [

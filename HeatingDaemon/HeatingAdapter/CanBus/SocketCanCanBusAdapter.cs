@@ -59,7 +59,7 @@ public class SocketCanCanBusAdapter : IDisposable, ICanBusService
 
         if (!OperatingSystem.IsLinux())
         {
-            _logger.LogError("SocketCAN ist nur unter Linux verfügbar. Aktuelles OS: {os}", Environment.OSVersion);
+            _logger.LogError("SocketCAN is only available on Linux. Current OS: {os}", Environment.OSVersion);
             return;
         }
 

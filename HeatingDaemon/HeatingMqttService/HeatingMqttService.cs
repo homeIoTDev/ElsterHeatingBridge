@@ -14,7 +14,7 @@ public class HeatingMqttService: IHostedService
 
     private readonly ILogger<HeatingMqttService>    _logger;
     private readonly HeatingMqttServiceConfig       _heatingMqttServiceConfig;
-    private readonly Lazy<ICanBusService>         _canBusService;
+    private readonly Lazy<ICanBusService>           _canBusService;
     private readonly Lazy<MqttAdapter>              _ac10MqttAdapter;
     private readonly Lazy<HeatingAdapter>           _heatingAdapter;
     private readonly CancellationTokenSource        _cts = new CancellationTokenSource();

@@ -11,12 +11,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up .NET Core
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Restore dependencies
       run: dotnet restore
@@ -28,11 +28,11 @@ jobs:
       run: dotnet publish HeatingDaemon/HeatingMqttService/HeatingMqttService.csproj -c Release -r linux-arm --self-contained false /p:PublishSingleFile=true /p:DebugType=none
 
     - name: Rename to example.appsettings.json
-      run: mv ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/appsettings.json ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/example.appsettings.json
+      run: mv ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/appsettings.json ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/example.appsettings.json
     - name: Generate an zip file
-      run: zip --junk-paths HeatingMqttService-linux-arm ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/*
+      run: zip --junk-paths HeatingMqttService-linux-arm ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/*
     - name: List published files
-      run: ls -R ./HeatingDaemon/HeatingMqttService/bin/Release/net8.0/linux-arm/publish/
+      run: ls -R ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/
 
     - name: Check if Release exists
       id: check_release

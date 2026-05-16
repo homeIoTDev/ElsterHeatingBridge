@@ -1,9 +1,13 @@
 name: .NET Core Publish
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -29,25 +33,33 @@ jobs:
 
     - name: Rename to example.appsettings.json
       run: mv ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/appsettings.json ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/example.appsettings.json
-    - name: Generate an zip file
+
+    - name: Generate zip file
       run: zip --junk-paths HeatingMqttService-linux-arm ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/*
+
     - name: List published files
       run: ls -R ./HeatingDaemon/HeatingMqttService/bin/Release/net10.0/linux-arm/publish/
 
+    # ---------------------------
+    # Release steps (ONLY on main)
+    # ---------------------------
+
     - name: Check if Release exists
+      if: github.ref == 'refs/heads/main'
       id: check_release
       run: |
         if gh release view latest > /dev/null 2>&1; then echo "exists=true" >> $GITHUB_ENV; else echo "exists=false" >> $GITHUB_ENV; fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
     - name: Delete Release if it exists
-      if: env.exists == 'true'
+      if: github.ref == 'refs/heads/main' && env.exists == 'true'
       run: gh release delete latest --cleanup-tag --yes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Delete existing release (if any)
+      if: github.ref == 'refs/heads/main'
       uses: dev-drprasad/delete-tag-and-release@v0.2.1
       with:
         delete_release: true
@@ -56,15 +68,15 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create GitHub Release
+      if: github.ref == 'refs/heads/main'
       id: create_release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: latest
         name: Release latest
         draft: false
-        prerelease: true
+        prerelease: false
         files: |
           ./HeatingMqttService-linux-arm.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

@@ -51,6 +51,7 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 - [x] Can_Scan Module auf gültige Elster-Werte
 - [x] Zu prüfen: Werden drei CR gesendet nach dem öffnen um den internen USBtin-Puffer zu leeren
 - [x] Zu prüfen: Werden alle 300 - 500 ms F gesendet um auf Fehler zu prüfen--> Sollte unabhängig vom Bell-Error ermittelt werden.
+- [x] Wechsel zu Deepseek-Modell in VS Code statt GitHub Copilot
 - [ ] Implementieren der Sammelfehler- und Fehlerlisten-Funktion
 - [ ] Fehlermeldung an ComfortSoft sollten ausgewerten werden: RemoteControl ->Write ComfortSoft FEHLERMELDUNG = 20805
 - [ ] WP_DHC_Stufe implementieren (Relais)
@@ -61,12 +62,16 @@ Dieses Projekt wurde in Zusammenarbeit mit einer Künstlichen Intelligenz entwic
 ## Telegrammaufbau
 <img src="doc/telegram.png" width="800">
 
-## Installation
-.NET 10.0 installieren
+## Installation / Update 
+Läuft aktuell auf einem Raspberry Pi 2 mit ARMv7-A (32-Bit) und Debian Bullseye (Voraussetzung für .net 10).
+
+.NET 10.0.x wird unter Debian mittels dotnet-install.sh installiert.
+Ebenso erfolgt ein Update (parallele Installation).
+
 ```
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --channel 10.0 --runtime aspnetcore
+wget https://dot.net/v1/dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh --channel 10.0 --runtime aspnetcore --arch arm
 
 # (Optional) Zum Kompilieren aus dem Source (SDK):
 # ./dotnet-install.sh --channel 10.0

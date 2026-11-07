@@ -229,6 +229,41 @@ OR       HeatingMqttService --msg_scan=             (collect all telegrams with 
 ```
 </details>
 
+### Passive Telegramm-Statistik im Dauerbetrieb (Daemon)
+
+Für den Dauerbetrieb gibt es zusätzlich eine unabhängige Statistik, die auch als Linux-Daemon funktioniert und die Werte nicht über MQTT auswertet. Sie sammelt dauerhaft die passiven Telegramme, zählt ihre Häufigkeit und schreibt die typischen Werte (Hex und interpretiert) in eine lesbare Textdatei. Die Statistik ist unabhängig vom Parameter `--msg_scan`.
+
+Konfiguration in der `appsettings.json`:
+
+```jsonc
+"PassiveTelegramLog": {
+  "Enabled": true,
+  "OutputFile": "/var/lib/heatingdaemon/passive-telegrams.txt",
+  "FlushInterval": "P30D",            // ISO 8601, z.B. PT6H, P1D, P30D
+  "IncludeUnknownIndices": false,
+  "DumpOnSigusr1": true
+}
+```
+
+Die Datei wird zyklisch komplett neu geschrieben, zusätzlich beim Beenden des Dienstes. Ein sofortiges Schreiben kann per Signal ausgelöst werden:
+
+```bash
+sudo systemctl kill -s SIGUSR1 HeatingDaemon
+```
+
+Ausgabeformat (gekürzt):
+
+```
+[key] sender=769 sender_name=RemoteControl receiver=1792 receiver_name=ExternalDevice index=0005 name=RAUMSOLLTEMP_I type=Respond count=42 first=2025-11-07T... last=2026-11-07T... span_h=8760.0 rate_per_h=0.0048 avg_interval_s=769170.7 avg_interval=8.9d last_hex=00C7 last_value=19.9
+[val] hex=00C7 count=40 first=2025-11-07T... last=2026-11-07T... value=19.9
+[val] hex=00B4 count=2 first=2026-03-01T... last=2026-03-02T... value=18.0
+
+[key] sender=... name=SOMMERBETRIEB type=Write count=2 first=2025-05-01T... last=2026-05-01T... span_h=8760.0 rate_per_h=0.000228 avg_interval_s=31536000.0 avg_interval=365.0d last_hex=0001 last_value=on
+```
+
+Die Felder `count`, `span_h`, `rate_per_h` und `avg_interval` zeigen die typische Häufigkeit (z.B. `avg_interval=2.3min` für 256x in 10h oder `avg_interval=365.0d` für einmal jährlich).
+
+Damit ist z.B. erkennbar, ob ein Telegramm nur einmal im Jahr (z.B. Wechsel in den Sommerbetrieb) oder mehrfach pro Stunde auftritt. Die Datei wird beim Start wieder eingelesen, sodass die Historie über Neustarts hinweg erhalten bleibt.
 
 Mit dem Parameter `can_scan` können die einzelnen Module (oder bestimmte Werte) der Heizungsanlage abgefragt werden, 
 um zu ermitteln auf welche Elster-Index-Werte diese reagiert.

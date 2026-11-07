@@ -174,6 +174,33 @@ public class ElsterCANFrame
     public ElsterValue? Value { get { return _elsterValue; } }
 
     /// <summary>
+    /// Der uninterpretierte Rohwert des Telegramms als 16-Bit-Wert.
+    /// </summary>
+    public ushort? RawValue
+    {
+        get
+        {
+            int value = GetValue();
+            return value < 0 ? null : (ushort)value;
+        }
+    }
+
+    /// <summary>
+    /// Der Name des Elster-Index aus der Elster-Tabelle oder ein
+    /// Platzhaltername, wenn der Index unbekannt ist.
+    /// </summary>
+    public string ElsterName
+    {
+        get
+        {
+            int tableIndex = KElsterTable.ElsterTabIndex[ElsterIndex];
+            return tableIndex >= 0
+                ? KElsterTable.ElsterTable[tableIndex].Name
+                : $"UNKNOWN_{ElsterIndex:X4}";
+        }
+    }
+
+    /// <summary>
     /// Erstellt eine neue Instanz der <see cref="ElsterCANFrame"/> Klasse aus einem CAN-Bus-Frame.
     /// </summary>
     /// <param name="canFrame">Das CAN-Bus-Frame</param>

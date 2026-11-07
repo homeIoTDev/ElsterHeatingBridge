@@ -106,11 +106,13 @@ class Program
                 services.Configure<MqttAdapterConfig>(hostContext.Configuration.GetSection("MqttAdapterConfig"));
                 services.Configure<HeatingAdapterConfig>(hostContext.Configuration.GetSection("HeatingAdapterConfig"));
                 services.Configure<HeatingMqttServiceConfig>(hostContext.Configuration.GetSection("HeatingMqttServiceConfig"));
+                services.Configure<PassiveTelegramLogConfig>(hostContext.Configuration.GetSection("PassiveTelegramLog"));
 
                 // Konkrete Implementierungen (werden je nach AdapterType genutzt)
                 services.AddSingleton<MqttAdapter>();              // wird von HeatingMqttService direkt genutzt
                 services.AddSingleton<UsbTinCanBusAdapter>();
                 services.AddSingleton<SocketCanCanBusAdapter>();
+                services.AddSingleton<PassiveTelegramLog>();
                 services.AddSingleton<HeatingAdapter>();
 
                 // Interfaces
@@ -136,6 +138,7 @@ class Program
                 services.AddSingleton(provider => new Lazy<MqttAdapter>(provider.GetRequiredService<MqttAdapter>));
 
                 services.AddHostedService<HeatingMqttService>();
+                services.AddHostedService<PassiveTelegramLogService>();
             });
 
         await builder.RunConsoleAsync();

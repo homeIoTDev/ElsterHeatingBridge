@@ -12,6 +12,7 @@ namespace HeatingDaemon;
 public class HeatingAdapter : IDisposable, IHeatingService
 {
     private readonly ILogger<HeatingAdapter>        _logger;
+    private readonly PassiveTelegramLog             _passiveTelegramLog;
     private ICanBusService                          _canBusService;
     private IMqttService                            _mqttService;
     private bool                                    _storeResponseFramesInQueue = false;
@@ -30,11 +31,13 @@ public class HeatingAdapter : IDisposable, IHeatingService
     public HeatingAdapter(IOptions<HeatingAdapterConfig> heatingAdapterConfig,
                       ICanBusService canBusService,
                       IMqttService mqttService,
+                      PassiveTelegramLog passiveTelegramLog,
                       ILogger<HeatingAdapter> logger)
   {
     _heatingAdapterConfig = heatingAdapterConfig.Value;
     _canBusService = canBusService;
     _mqttService = mqttService;
+    _passiveTelegramLog = passiveTelegramLog;
     _logger = logger;
     try { _standardSenderCanID = Convert.ToUInt16(_heatingAdapterConfig.StandardSenderCanID, 16); } catch { }
   }
@@ -59,6 +62,11 @@ public class HeatingAdapter : IDisposable, IHeatingService
             }
         }
 
+
+        if (elsterFrame != null && elsterFrame.IsValidTelegram)
+        {
+            _passiveTelegramLog.Observe(elsterFrame);
+        }
 
         if (elsterFrame != null && elsterFrame.IsValidTelegram && elsterFrame.Value != null)
         {

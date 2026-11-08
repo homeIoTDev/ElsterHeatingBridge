@@ -3600,7 +3600,7 @@ public partial class KElsterTable
         // Heizkreispumpe (zyklisch)  aus 0   ein 01
         ( "PUMPENZYKLEN"                                     , 0xfdb2, ElsterValueType.et_little_endian),
         ( "GEBAEUDEART"                                      , 0xfdb3, ElsterValueType.et_little_endian),
-        // aus 00   ein 01
+        // aus 00   ein 01 (entspricht der Einstellung/Heizen/Grundeinstellungen - Funktionsfreigabe, nicht ob aktiv!)
         ( "SOMMERBETRIEB"                                    , 0xfdb4, ElsterValueType.et_little_bool),
         ( "IMPULSRATE"                                       , 0xfdb5, ElsterValueType.et_little_endian),
         ( "SOLARBETRIEB"                                     , 0xfdb6, ElsterValueType.et_little_endian),

@@ -298,3 +298,71 @@ Der initiale EVU‑Status beim Hochfahren der Wärmepumpe ist nicht zuverlässig
 Bis eine saubere Filterung implementiert ist, gibt es zwei praktikable Lösungen:
 - Zuerst die Wärmepumpe starten, dann den HeatingDaemon
 - EVU‑Sperre in der Konfiguration vom HeatingDaemon deaktivieren: Wenn die EVU‑Sperre in der eigenen Installation ohnehin nicht genutzt wird, kann sie vorübergehend abgeschaltet werden.
+
+## 14.11.2027 Neue Werte über die neue PassiveTelegramStats des Daemons und Heizungsbewertung der KI !!!
+| Feld | Telegramm | Hinweis |
+|--------|--------|--------|
+| betriebsart | BETRIEBSART_WP (HeatingModule→Manager) | 0 Stillstand, 6 Anlauf, 4 Lauf, 1 Abtauung |
+| relais | SAMMEL_RELAISSTATUS (Boiler→RemoteControl_Broadcast) | 1 = Verdichter an; die Manager-Variante ist immer 0 |
+| fehler | FEHLERMELDUNG von HeatingModule oder Boiler | immer 0; nicht die von RemoteControl→ComfortSoft |
+| puffer_soll | HILFSKESSELSOLL oder KESSELSOLLTEMP | identisch mit PUFFERSOLL (25,2 °C am 08.11.) |
+
+Sommerbetrieb „on“ steht auch bei 0 °C. Das ist also ein Freigabeflag und kein aktiver Sommerbetrieb.
+
+Datum und Uhr der WPM: Das Datum steht weiter 7 Tage zurück (02.11. statt 09.11.). Die Uhr geht etwa 2,5 min vor.
+
+Die Woche ist unauffällig: kein kritisches Takten, die Raumregelung greift, und die Änderung vom 08.11. hat die Heizkurve nicht verschoben. Der größte Hebel ist das Warmwasser.
+
+### Wochenbilanz (volle Tage 08.–13.11.)
+
+| Tag | Außen Ø | Wärme/Strom Heizen (kWh) | COP | Starts (davon WW) | Abtau. | W/K |
+|--------|--------|--------|--------|--------|--------|--------|
+| 08.11. | 9,2 | 32,5 / 7,7 | 4,24 | 11 (1) | 1 | 123 |
+| 09.11. | 6,4 | 33,9 / 8,4 | 4,03 | 9 (2) | 3 | 104 |
+| 10.11. | 9,8 | 27,9 / 6,5 | 4,29 | 8 (1) | 0 | 115 |
+| 11.11. | 12,7 | 22,3 / 5,1 | 4,36 | 6 (1) | 1 | 127 |
+| 12.11. | 10,9 | 21,8 / 5,1 | 4,29 | 5 (2) | 0 | 99 |
+| 13.11. | 5,8 | 36,5 / 9,1 | 4,01 | 12 (1) | 4 | 105 |
+
+COP: Er fällt um etwa 0,05 pro Kelvin Außentemperatur. Im Wochenschnitt liegt er beim Heizen bei 4,17.
+
+Zählercheck: Die Summe der Lauf-kWh im Log passt auf 3–5 % zur Tages-Bilanz.
+
+### Takten
+
+- Laufzeit: Heizläufe dauern 19–28 min, meist 22. Nur Läufe mit Frost-Abtauung dauern 32–36 min.
+- Pausen: Sie schrumpfen von 200 min und mehr bei 8 °C und mehr auf 31–33 min bei −5 °C. Die kürzeste Pause war 29 min.
+- Starts: Es sind 5–12 pro Tag.
+- Hysterese: Daran musst du nichts ändern.
+- Fehlalarm: Die einzige Zeile mit takt=kritisch (07.11., 1 min, pause_min=n/a) ist ein Start-Artefakt. Der Logger begann mitten im Lauf. Solche Läufe würde ich ausnehmen.
+
+### Warmwasser ist der größte Hebel
+
+- Anteil: Acht WW-Läufe haben 18,7 kWh Strom verbraucht, gegenüber 41,9 kWh fürs Heizen. Das sind etwa 31 % des Stroms.
+- Details: Die Läufe dauern 38–76 min und brauchen 1,6–3,1 kWh. Der Vorlauf erreicht 53–59,6 °C, das ist nahe am Limit von 60 °C.
+- Gesamt-COP: Mit WW (COP etwa 3,2 angenommen) liegt der Wochen-COP nur bei etwa 3,9.
+- Zusatzladungen: Zwei Läufe liegen außerhalb des Mittagsfensters (09.11. morgens, 12.11. um 21:14 Uhr bei 5,3 °C). Die Mittagsläufe laufen bei der wärmsten Luft und sind schon günstig.
+- Prüfpunkte: Komfort-Soll 42,5 °C, Eco-Soll 38,8 °C und die WW-Hysterese. Jedes Kelvin weniger spart spürbar.
+
+### Abtauungen: zwei Klassen
+
+| Klasse | Ereignisse | Dauer | Merkmale | Kosten |
+|--------|--------|--------|--------|--------|
+| Mini | 4 bei 5,9–11,4 °C | 1,1–1,3 min | verd_min ≥ 20, normaler Niederdruck | etwa 0 bis +0,15 kWh |
+| Frost | 7 bei ≤ 3 °C | 2,5–3,7 min | verd_min ≤ 17,5, Niederdruck fällt auf 2,95–3,5 bar | +0,35 kWh je Lauf |
+
+Mit verd_min < 18 kannst du Frost-Abtauungen sauber von den Minis trennen. Bei −3 bis −5 °C kommt eine Frost-Abtauung etwa alle 4 h vor. Das kostet bei kaltem Wetter grob 10–20 % des Heizstroms.
+
+Der Eintrag 13.11. um 01:40 hat abtau_raw=0. Dein Detektor hängt also nicht am Rohwert, das ist gut so.
+
+### Regelung und Raum
+
+- Rücklauf-Soll: Es liegt bei 22,9 °C (11 °C außen), 24,0 (7 °C), 24,8 (0 °C), 25,4 (−3 °C) und 25,7–25,8 (−5 °C). Die Steigung beträgt oberhalb von 6 °C etwa 0,19 K/K und darunter etwa 0,15. Die Kurve passt.
+- FEK und Haus: Haus minus FEK liegt jetzt bei +0,0 bis +0,25 K, an sonnigen Nachmittagen bis +0,5 K. Die Kalibrierung ist gelungen.
+- Raumtemperatur: Das Haus hält 19,9–20,3 °C. Es ist auf kalten Nächten eher etwas wärmer als bei mildem Wetter. Steiler musst du die Kurve nicht machen.
+
+### Auslegung
+
+- Wärmeverlust: Der gemessene Wert liegt bei 99–131 W/K, im Mittel etwa 115. Das sind 70–93 % des Norm-Werts von 141 W/K.
+- Hochrechnung auf −14 °C: Die Heizlast liegt dann bei etwa 3,9 kW (Spanne 3,4–4,5 kW). Die WPL 10 liefert bei W35 und −14 °C ungefähr 4,0 kW. Die Zusatzheizung wird also höchstens an wenigen Tagen unter etwa −12 °C gebraucht. Dein Bivalenzpunkt −20 °C kann da knapp werden. Willst du als Sicherheitsnetz −12 °C setzen, wäre das vertretbar.
+- Spreizung: Am Laufende liegt sie bei etwa 10,7 K (6 °C außen) und 8 K (−5 °C außen). Rechnerisch ergibt das einen Volumenstrom von nur etwa 0,65–0,75 m³/h. Das ist knapp über dem Minimum der WPL 10 (0,7 m³/h) und unter dem Nennwert von 1,4 m³/h. Mehr Volumenstrom würde den Vorlauf bei gleichem Rücklauf senken und den COP leicht heben. Das ist eine Schätzung, die du an der Pumpeneinstellung prüfen solltest.
